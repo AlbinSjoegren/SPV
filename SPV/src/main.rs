@@ -1,4 +1,15 @@
+use eframe::{egui, epi};
+use egui::{epaint, Vec2};
+
 fn main() {
+    let app = Canvas::default();
+    let options = eframe::NativeOptions {
+        transparent: true,
+        ..Default::default()
+    };
+    eframe::run_native(Box::new(app), options);
+
+
     let input = Input {
         distance: 0., //In Lightyears
         declination_degree: 0., //In Degreees
@@ -129,5 +140,51 @@ struct Input {
     radial_velocity: f64, //In km/s
     proper_motion_ra: f64, //In Arcseconds/year
     proper_motion_dec: f64, //In Arcseconds/year
+}
+
+#[derive(Default)]
+pub struct Canvas {
+    
+}
+
+impl epi::App for Canvas {
+    fn name(&self) -> &str {
+        "SPV"
+    }
+
+    #[allow(unused_variables)]
+    fn setup(
+        &mut self,
+        _ctx: &egui::CtxRef,
+        _frame: &mut epi::Frame<'_>,
+        storage: Option<&dyn epi::Storage>,
+    ) {
+        #[cfg(feature = "persistence")]
+        if let Some(storage) = storage {
+            *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
+        }
+    }
+
+    #[cfg(feature = "persistence")]
+    fn save(&mut self, storage: &mut dyn epi::Storage) {
+        epi::set_value(storage, epi::APP_KEY, self);
+    }
+    fn clear_color(&self) -> egui::Rgba {
+        egui::Rgba::TRANSPARENT
+    }
+
+    fn warm_up_enabled(&self) -> bool {
+        // The example windows use a lot of emojis. Pre-cache them by running one frame where everything is open
+        cfg!(not(debug_assertions))
+    }
+
+    fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
+        let window = egui::Window::new("SPV").anchor(egui::Align2::CENTER_CENTER, (0f32, 0f32));
+        window.show(ctx, |ui| {
+            ui.add(
+                egui::Label::new(format!("TEST")).heading(),
+            );     
+        });
+    }
 }
 
