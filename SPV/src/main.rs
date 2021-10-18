@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use eframe::{egui, epi};
 
 fn main() {
@@ -90,9 +92,9 @@ fn velocity(
                 + (proper_motion_z - z).powf(2.))
             .sqrt());
 
-    let vector_proper_motion_x = normalized_vector_proper_motion_x * radial_velocity;
-    let vector_proper_motion_y = normalized_vector_proper_motion_y * radial_velocity;
-    let vector_proper_motion_z = normalized_vector_proper_motion_z * radial_velocity;
+    let vector_proper_motion_x = normalized_vector_proper_motion_x * proper_motion_x;
+    let vector_proper_motion_y = normalized_vector_proper_motion_y * proper_motion_y;
+    let vector_proper_motion_z = normalized_vector_proper_motion_z * proper_motion_z;
 
     let x_v = radial_velocity_vector_x + vector_proper_motion_x;
     let y_v = radial_velocity_vector_y + vector_proper_motion_y;
@@ -131,7 +133,7 @@ fn export_json(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: S
     serde_json::to_writer_pretty(writer, &data).unwrap();
 }
 
-fn export_txt(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: String) {}
+//fn export_txt(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: String) {}
 
 #[derive(Default)]
 pub struct Canvas {
@@ -206,7 +208,7 @@ impl epi::App for Canvas {
                             ui.add(egui::Label::new(format!("System name")).heading());
                             let response = ui.add(egui::TextEdit::singleline(&mut self.name_str));
                             if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {}
-                            ui.add(egui::Label::new(format!("{}", self.name_str)).italics());
+                            ui.add(egui::Label::new(format!("{}", self.name_str)).monospace());
                         });
 
                         ui.group(|ui| {
@@ -240,9 +242,11 @@ impl epi::App for Canvas {
                             if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
                                 self.distance = self.distance_str.clone().parse().unwrap();
                             }
-                            ui.add(egui::Label::new(format!("{} ly", self.distance)).italics());
+                            ui.add(egui::Label::new(format!("{} ly", self.distance)).monospace());
                             self.distance_km = self.distance * 9.461 * 10_f64.powf(12.);
-                            ui.add(egui::Label::new(format!("{} km", self.distance_km)).italics());
+                            ui.add(
+                                egui::Label::new(format!("{} km", self.distance_km)).monospace(),
+                            );
                         });
                         ui.group(|ui| {
                             ui.add(egui::Label::new(format!("Declination")).heading());
@@ -254,7 +258,8 @@ impl epi::App for Canvas {
                                     self.declination_degree_str.clone().parse().unwrap();
                             }
                             ui.add(
-                                egui::Label::new(format!("{}°", self.declination_degree)).italics(),
+                                egui::Label::new(format!("{}°", self.declination_degree))
+                                    .monospace(),
                             );
 
                             ui.add(egui::Label::new(format!("Minutes (')")).monospace());
@@ -265,7 +270,7 @@ impl epi::App for Canvas {
                                     self.declination_min_str.clone().parse().unwrap();
                             }
                             ui.add(
-                                egui::Label::new(format!("{}'", self.declination_min)).italics(),
+                                egui::Label::new(format!("{}'", self.declination_min)).monospace(),
                             );
 
                             ui.add(egui::Label::new(format!("Seconds ('')")).monospace());
@@ -275,7 +280,9 @@ impl epi::App for Canvas {
                                 self.declination_s =
                                     self.declination_s_str.clone().parse().unwrap();
                             }
-                            ui.add(egui::Label::new(format!("{}''", self.declination_s)).italics());
+                            ui.add(
+                                egui::Label::new(format!("{}''", self.declination_s)).monospace(),
+                            );
 
                             self.declination = self.declination_degree
                                 + (self.declination_min / 60.)
@@ -294,7 +301,8 @@ impl epi::App for Canvas {
                                     self.right_ascension_h_str.clone().parse().unwrap();
                             }
                             ui.add(
-                                egui::Label::new(format!("{}h", self.right_ascension_h)).italics(),
+                                egui::Label::new(format!("{}h", self.right_ascension_h))
+                                    .monospace(),
                             );
 
                             ui.add(egui::Label::new(format!("Minutes (m)")).monospace());
@@ -307,7 +315,7 @@ impl epi::App for Canvas {
                             }
                             ui.add(
                                 egui::Label::new(format!("{}m", self.right_ascension_min))
-                                    .italics(),
+                                    .monospace(),
                             );
 
                             ui.add(egui::Label::new(format!("Seconds (s)")).monospace());
@@ -318,7 +326,8 @@ impl epi::App for Canvas {
                                     self.right_ascension_s_str.clone().parse().unwrap();
                             }
                             ui.add(
-                                egui::Label::new(format!("{}s", self.right_ascension_s)).italics(),
+                                egui::Label::new(format!("{}s", self.right_ascension_s))
+                                    .monospace(),
                             );
 
                             self.right_ascension = (self.right_ascension_h * 15.)
@@ -369,7 +378,7 @@ impl epi::App for Canvas {
                             }
                             ui.add(
                                 egui::Label::new(format!("{} km/s", self.radial_velocity))
-                                    .italics(),
+                                    .monospace(),
                             );
                         });
                         ui.group(|ui| {
@@ -386,7 +395,7 @@ impl epi::App for Canvas {
                             }
                             ui.add(
                                 egui::Label::new(format!("{} as/yr", self.proper_motion_ra))
-                                    .italics(),
+                                    .monospace(),
                             );
                             ui.add(
                                 egui::Label::new(format!("Declination (arcsecons/year)"))
@@ -400,7 +409,7 @@ impl epi::App for Canvas {
                             }
                             ui.add(
                                 egui::Label::new(format!("{} as/yr", self.proper_motion_dec))
-                                    .italics(),
+                                    .monospace(),
                             );
                         });
 
