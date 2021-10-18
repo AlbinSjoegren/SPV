@@ -101,6 +101,38 @@ fn velocity(
     return (x_v, y_v, z_v);
 }
 
+use serde::{Deserialize, Serialize};
+#[derive(Serialize, Deserialize, Debug)]
+struct Export {
+    x_pos: f64,
+    y_pos: f64,
+    z_pos: f64,
+    x_vel: f64,
+    y_vel: f64,
+    z_vel: f64,
+    name: String,
+}
+
+use serde_json;
+use std::fs::File;
+use std::io::BufWriter;
+fn export_json(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: String) {
+    let data = Export {
+        x_pos: x,
+        y_pos: y,
+        z_pos: z,
+        x_vel: x_v,
+        y_vel: y_v,
+        z_vel: z_v,
+        name: name_str,
+    };
+    // write out the file
+    let writer = BufWriter::new(File::create("data.json").unwrap());
+    serde_json::to_writer_pretty(writer, &data).unwrap();
+}
+
+fn export_txt(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: String) {}
+
 #[derive(Default)]
 pub struct Canvas {
     name_str: String,
@@ -181,7 +213,15 @@ impl epi::App for Canvas {
                             ui.add(egui::Label::new(format!("Export file")).heading());
                             ui.horizontal_wrapped(|ui| {
                                 if ui.add(egui::Button::new("JSON")).clicked() {
-                                    //do_stuff();
+                                    export_json(
+                                        self.x,
+                                        self.y,
+                                        self.z,
+                                        self.x_v,
+                                        self.y_v,
+                                        self.z_v,
+                                        self.name_str.clone(),
+                                    );
                                 }
 
                                 if ui.add(egui::Button::new("TXT")).clicked() {
