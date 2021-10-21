@@ -39,16 +39,29 @@ fn velocity(
     let mut normalized_vector_z = 0.;
 
     if radial_velocity < 0. {
+        normalized_vector_x =
+            x / ((0_f64 - x).powf(2.) + (0_f64 - y).powf(2.) + (0_f64 - z).powf(2.)).sqrt();
+        normalized_vector_y =
+            y / ((0_f64 - x).powf(2.) + (0_f64 - y).powf(2.) + (0_f64 - z).powf(2.)).sqrt();
+        normalized_vector_z =
+            z / ((0_f64 - x).powf(2.) + (0_f64 - y).powf(2.) + (0_f64 - z).powf(2.)).sqrt();
+        /*
         normalized_vector_x = (0_f64 - x)
             * (1. / ((0_f64 - x).powf(2.) + (0_f64 - y).powf(2.) + (0_f64 - z).powf(2.)).sqrt());
         normalized_vector_y = (0_f64 - y)
             * (1. / ((0_f64 - x).powf(2.) + (0_f64 - y).powf(2.) + (0_f64 - z).powf(2.)).sqrt());
         normalized_vector_z = (0_f64 - z)
             * (1. / ((0_f64 - x).powf(2.) + (0_f64 - y).powf(2.) + (0_f64 - z).powf(2.)).sqrt());
+        */
     } else if radial_velocity > 0. {
-        normalized_vector_x = (x) * (1. / ((x).powf(2.) + (y).powf(2.) + (z).powf(2.)).sqrt());
-        normalized_vector_y = (y) * (1. / ((x).powf(2.) + (y).powf(2.) + (z).powf(2.)).sqrt());
-        normalized_vector_z = (z) * (1. / ((x).powf(2.) + (y).powf(2.) + (z).powf(2.)).sqrt());
+        normalized_vector_x = x / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
+        normalized_vector_y = y / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
+        normalized_vector_z = z / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
+        /*
+        normalized_vector_x = x * (1. / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt());
+        normalized_vector_y = y * (1. / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt());
+        normalized_vector_z = z * (1. / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt());
+        */
     } else {
         normalized_vector_x = 0.;
         normalized_vector_y = 0.;
@@ -78,6 +91,13 @@ fn velocity(
             .to_radians())
         .cos();
 
+    let normalized_vector_proper_motion_x = proper_motion_x
+        / (proper_motion_x.powf(2.) + proper_motion_y.powf(2.) + proper_motion_z.powf(2.)).sqrt();
+    let normalized_vector_proper_motion_y = proper_motion_y
+        / (proper_motion_x.powf(2.) + proper_motion_y.powf(2.) + proper_motion_z.powf(2.)).sqrt();
+    let normalized_vector_proper_motion_z = proper_motion_z
+        / (proper_motion_x.powf(2.) + proper_motion_y.powf(2.) + proper_motion_z.powf(2.)).sqrt();
+    /*
     let normalized_vector_proper_motion_x = (proper_motion_x - x)
         * (1.
             / ((proper_motion_x - x).powf(2.)
@@ -96,7 +116,7 @@ fn velocity(
                 + (proper_motion_y - y).powf(2.)
                 + (proper_motion_z - z).powf(2.))
             .sqrt());
-
+    */
     let vector_proper_motion_x = normalized_vector_proper_motion_x * proper_motion_x;
     let vector_proper_motion_y = normalized_vector_proper_motion_y * proper_motion_y;
     let vector_proper_motion_z = normalized_vector_proper_motion_z * proper_motion_z;
@@ -204,6 +224,12 @@ impl epi::App for Canvas {
         if let Some(storage) = storage {
             *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
         }
+        self.x_v = 0.;
+        self.y_v = 0.;
+        self.z_v = 0.;
+        self.radial_velocity = 0.;
+        self.proper_motion_dec = 0.;
+        self.proper_motion_ra = 0.;
     }
 
     #[cfg(feature = "persistence")]
