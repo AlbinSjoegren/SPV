@@ -49,6 +49,10 @@ fn velocity(
         normalized_vector_x = (x) * (1. / ((x).powf(2.) + (y).powf(2.) + (z).powf(2.)).sqrt());
         normalized_vector_y = (y) * (1. / ((x).powf(2.) + (y).powf(2.) + (z).powf(2.)).sqrt());
         normalized_vector_z = (z) * (1. / ((x).powf(2.) + (y).powf(2.) + (z).powf(2.)).sqrt());
+    } else {
+        normalized_vector_x = 0.;
+        normalized_vector_y = 0.;
+        normalized_vector_z = 0.;
     }
 
     let radial_velocity_vector_x = normalized_vector_x * radial_velocity;
@@ -118,7 +122,7 @@ struct Export {
 
 use serde_json;
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufWriter, Write};
 fn export_json(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: String) {
     let data = Export {
         x_pos: x,
@@ -134,7 +138,21 @@ fn export_json(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: S
     serde_json::to_writer_pretty(writer, &data).unwrap();
 }
 
-//fn export_txt(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: String) {}
+fn export_txt(x: f64, y: f64, z: f64, x_v: f64, y_v: f64, z_v: f64, name_str: String) {
+    let data = Export {
+        x_pos: x,
+        y_pos: y,
+        z_pos: z,
+        x_vel: x_v,
+        y_vel: y_v,
+        z_vel: z_v,
+        name: name_str,
+    };
+    let mut buffer = File::create("data.txt").unwrap();
+    buffer
+        .write_all(serde_json::to_string(&data).unwrap().as_bytes())
+        .unwrap();
+}
 
 #[derive(Default)]
 pub struct Canvas {
@@ -202,148 +220,258 @@ impl epi::App for Canvas {
 
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.horizontal_wrapped(|ui| {
-                ui.vertical(|ui| {
-                    ui.group(|ui| {
-                        ui.group(|ui| {
-                            ui.add(egui::Label::new(format!("System name")).heading());
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.name_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {}
-                            ui.add(egui::Label::new(format!("{}", self.name_str)).monospace());
-                        });
-
-                        ui.group(|ui| {
-                            ui.add(egui::Label::new(format!("Export file")).heading());
-                            ui.horizontal_wrapped(|ui| {
-                                if ui.add(egui::Button::new("JSON")).clicked() {
-                                    export_json(
-                                        self.x,
-                                        self.y,
-                                        self.z,
-                                        self.x_v,
-                                        self.y_v,
-                                        self.z_v,
-                                        self.name_str.clone(),
+            ui.vertical_centered_justified(|ui| {
+                ui.group(|ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.vertical(|ui| {
+                            ui.group(|ui| {
+                                ui.group(|ui| {
+                                    ui.add(egui::Label::new(format!("System name")).heading());
+                                    let response =
+                                        ui.add(egui::TextEdit::singleline(&mut self.name_str));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{}", self.name_str)).monospace(),
                                     );
-                                }
-
-                                if ui.add(egui::Button::new("TXT")).clicked() {
-                                    //do_stuff();
-                                }
+                                });
+                                ui.group(|ui| {
+                                    ui.add(egui::Label::new(format!("Export file")).heading());
+                                    ui.horizontal_wrapped(|ui| {
+                                        if ui.add(egui::Button::new("JSON")).clicked() {
+                                            export_json(
+                                                self.x,
+                                                self.y,
+                                                self.z,
+                                                self.x_v,
+                                                self.y_v,
+                                                self.z_v,
+                                                self.name_str.clone(),
+                                            );
+                                        }
+                                        if ui.add(egui::Button::new("TXT")).clicked() {
+                                            export_txt(
+                                                self.x,
+                                                self.y,
+                                                self.z,
+                                                self.x_v,
+                                                self.y_v,
+                                                self.z_v,
+                                                self.name_str.clone(),
+                                            );
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                        ui.vertical(|ui| {
+                            ui.group(|ui| {
+                                ui.group(|ui| {
+                                    ui.add(
+                                        egui::Label::new(format!("Distance (lightyears)"))
+                                            .heading(),
+                                    );
+                                    let response =
+                                        ui.add(egui::TextEdit::singleline(&mut self.distance_str));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.distance = self.distance_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{} ly", self.distance))
+                                            .monospace(),
+                                    );
+                                    self.distance_km = self.distance * 9.461 * 10_f64.powf(12.);
+                                    ui.add(
+                                        egui::Label::new(format!("{} km", self.distance_km))
+                                            .monospace(),
+                                    );
+                                });
+                                ui.group(|ui| {
+                                    ui.add(egui::Label::new(format!("Declination")).heading());
+                                    ui.add(egui::Label::new(format!("Degrees (°)")).monospace());
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.declination_degree_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.declination_degree =
+                                            self.declination_degree_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{}°", self.declination_degree))
+                                            .monospace(),
+                                    );
+                                    ui.add(egui::Label::new(format!("Minutes (')")).monospace());
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.declination_min_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.declination_min =
+                                            self.declination_min_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{}'", self.declination_min))
+                                            .monospace(),
+                                    );
+                                    ui.add(egui::Label::new(format!("Seconds ('')")).monospace());
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.declination_s_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.declination_s =
+                                            self.declination_s_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{}''", self.declination_s))
+                                            .monospace(),
+                                    );
+                                    self.declination = self.declination_degree
+                                        + (self.declination_min / 60.)
+                                        + (self.declination_s / 3600.);
+                                    ui.add(egui::Label::new(format!("Total")).heading());
+                                    ui.add(
+                                        egui::Label::new(format!("{}°", self.declination))
+                                            .monospace(),
+                                    );
+                                });
+                                ui.group(|ui| {
+                                    ui.add(egui::Label::new(format!("Right ascension")).heading());
+                                    ui.add(egui::Label::new(format!("Hours (h)")).monospace());
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.right_ascension_h_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.right_ascension_h =
+                                            self.right_ascension_h_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{}h", self.right_ascension_h))
+                                            .monospace(),
+                                    );
+                                    ui.add(egui::Label::new(format!("Minutes (m)")).monospace());
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.right_ascension_min_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.right_ascension_min =
+                                            self.right_ascension_min_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{}m", self.right_ascension_min))
+                                            .monospace(),
+                                    );
+                                    ui.add(egui::Label::new(format!("Seconds (s)")).monospace());
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.right_ascension_s_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.right_ascension_s =
+                                            self.right_ascension_s_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{}s", self.right_ascension_s))
+                                            .monospace(),
+                                    );
+                                    self.right_ascension = (self.right_ascension_h * 15.)
+                                        + (self.right_ascension_min * (1. / 4.))
+                                        + (self.right_ascension_s * (1. / 240.));
+                                    ui.add(egui::Label::new(format!("Total")).heading());
+                                    ui.add(
+                                        egui::Label::new(format!("{}°", self.right_ascension))
+                                            .monospace(),
+                                    );
+                                });
+                            });
+                        });
+                        ui.vertical(|ui| {
+                            ui.group(|ui| {
+                                ui.group(|ui| {
+                                    ui.add(
+                                        egui::Label::new(format!("Radial velocity (km/s)"))
+                                            .heading(),
+                                    );
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.radial_velocity_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.radial_velocity =
+                                            self.radial_velocity_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!("{} km/s", self.radial_velocity))
+                                            .monospace(),
+                                    );
+                                });
+                                ui.group(|ui| {
+                                    ui.add(egui::Label::new(format!("Proper motion")).heading());
+                                    ui.add(
+                                        egui::Label::new(format!(
+                                            "Right ascension (arcsecons/year)"
+                                        ))
+                                        .monospace(),
+                                    );
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.proper_motion_ra_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.proper_motion_ra =
+                                            self.proper_motion_ra_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!(
+                                            "{} as/yr",
+                                            self.proper_motion_ra
+                                        ))
+                                        .monospace(),
+                                    );
+                                    ui.add(
+                                        egui::Label::new(format!("Declination (arcsecons/year)"))
+                                            .monospace(),
+                                    );
+                                    let response = ui.add(egui::TextEdit::singleline(
+                                        &mut self.proper_motion_dec_str,
+                                    ));
+                                    if response.lost_focus()
+                                        && ui.input().key_pressed(egui::Key::Enter)
+                                    {
+                                        self.proper_motion_dec =
+                                            self.proper_motion_dec_str.clone().parse().unwrap();
+                                    }
+                                    ui.add(
+                                        egui::Label::new(format!(
+                                            "{} as/yr",
+                                            self.proper_motion_dec
+                                        ))
+                                        .monospace(),
+                                    );
+                                });
                             });
                         });
                     });
                 });
-                ui.vertical(|ui| {
-                    ui.group(|ui| {
-                        ui.group(|ui| {
-                            ui.add(egui::Label::new(format!("Distance (lightyears)")).heading());
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.distance_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.distance = self.distance_str.clone().parse().unwrap();
-                            }
-                            ui.add(egui::Label::new(format!("{} ly", self.distance)).monospace());
-                            self.distance_km = self.distance * 9.461 * 10_f64.powf(12.);
-                            ui.add(
-                                egui::Label::new(format!("{} km", self.distance_km)).monospace(),
-                            );
-                        });
-                        ui.group(|ui| {
-                            ui.add(egui::Label::new(format!("Declination")).heading());
-                            ui.add(egui::Label::new(format!("Degrees (°)")).monospace());
-                            let response = ui
-                                .add(egui::TextEdit::singleline(&mut self.declination_degree_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.declination_degree =
-                                    self.declination_degree_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{}°", self.declination_degree))
-                                    .monospace(),
-                            );
-
-                            ui.add(egui::Label::new(format!("Minutes (')")).monospace());
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.declination_min_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.declination_min =
-                                    self.declination_min_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{}'", self.declination_min)).monospace(),
-                            );
-
-                            ui.add(egui::Label::new(format!("Seconds ('')")).monospace());
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.declination_s_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.declination_s =
-                                    self.declination_s_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{}''", self.declination_s)).monospace(),
-                            );
-
-                            self.declination = self.declination_degree
-                                + (self.declination_min / 60.)
-                                + (self.declination_s / 3600.);
-
-                            ui.add(egui::Label::new(format!("Total")).heading());
-                            ui.add(egui::Label::new(format!("{}°", self.declination)).monospace());
-                        });
-                        ui.group(|ui| {
-                            ui.add(egui::Label::new(format!("Right ascension")).heading());
-                            ui.add(egui::Label::new(format!("Hours (h)")).monospace());
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.right_ascension_h_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.right_ascension_h =
-                                    self.right_ascension_h_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{}h", self.right_ascension_h))
-                                    .monospace(),
-                            );
-
-                            ui.add(egui::Label::new(format!("Minutes (m)")).monospace());
-                            let response = ui.add(egui::TextEdit::singleline(
-                                &mut self.right_ascension_min_str,
-                            ));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.right_ascension_min =
-                                    self.right_ascension_min_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{}m", self.right_ascension_min))
-                                    .monospace(),
-                            );
-
-                            ui.add(egui::Label::new(format!("Seconds (s)")).monospace());
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.right_ascension_s_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.right_ascension_s =
-                                    self.right_ascension_s_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{}s", self.right_ascension_s))
-                                    .monospace(),
-                            );
-
-                            self.right_ascension = (self.right_ascension_h * 15.)
-                                + (self.right_ascension_min * (1. / 4.))
-                                + (self.right_ascension_s * (1. / 240.));
-
-                            ui.add(egui::Label::new(format!("Total")).heading());
-                            ui.add(
-                                egui::Label::new(format!("{}°", self.right_ascension)).monospace(),
-                            );
-                        });
-
+                ui.group(|ui| {
+                    ui.horizontal_wrapped(|ui| {
                         ui.group(|ui| {
                             ui.add(egui::Label::new(format!("Resulting position (km)")).heading());
-
                             ui.add(
                                 egui::Label::new(format!(
                                     "{:?}",
@@ -365,60 +493,10 @@ impl epi::App for Canvas {
                                 position(self.distance_km, self.right_ascension, self.declination)
                                     .2;
                         });
-                    });
-                });
-                ui.vertical(|ui| {
-                    ui.group(|ui| {
-                        ui.group(|ui| {
-                            ui.add(egui::Label::new(format!("Radial velocity (km/s)")).heading());
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.radial_velocity_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.radial_velocity =
-                                    self.radial_velocity_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{} km/s", self.radial_velocity))
-                                    .monospace(),
-                            );
-                        });
-                        ui.group(|ui| {
-                            ui.add(egui::Label::new(format!("Proper motion")).heading());
-                            ui.add(
-                                egui::Label::new(format!("Right ascension (arcsecons/year)"))
-                                    .monospace(),
-                            );
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.proper_motion_ra_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.proper_motion_ra =
-                                    self.proper_motion_ra_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{} as/yr", self.proper_motion_ra))
-                                    .monospace(),
-                            );
-                            ui.add(
-                                egui::Label::new(format!("Declination (arcsecons/year)"))
-                                    .monospace(),
-                            );
-                            let response =
-                                ui.add(egui::TextEdit::singleline(&mut self.proper_motion_dec_str));
-                            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                                self.proper_motion_dec =
-                                    self.proper_motion_dec_str.clone().parse().unwrap();
-                            }
-                            ui.add(
-                                egui::Label::new(format!("{} as/yr", self.proper_motion_dec))
-                                    .monospace(),
-                            );
-                        });
-
                         ui.group(|ui| {
                             ui.add(
                                 egui::Label::new(format!("Resulting velocity (km/s)")).heading(),
                             );
-
                             ui.add(
                                 egui::Label::new(format!(
                                     "{:?}",
