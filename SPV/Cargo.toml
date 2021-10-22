@@ -1,6 +1,6 @@
 [package]
 name = "spv"
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
 description = "This is a tool"

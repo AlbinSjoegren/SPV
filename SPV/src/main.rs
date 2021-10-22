@@ -121,14 +121,14 @@ fn velocity(
             .to_radians())
         .cos();
     //-----------------------------------------------------------------------------------------------------------------------------------------------
-    let normalized_vector_proper_motion_x = proper_motion_x
-        / (proper_motion_x.powf(2.) + proper_motion_y.powf(2.) + proper_motion_z.powf(2.)).sqrt();
+    let normalized_vector_proper_motion_x = (proper_motion_x - x)
+        / ((proper_motion_x - x).powf(2.) + (proper_motion_y - y).powf(2.) + (proper_motion_z - z).powf(2.)).sqrt();
     //-----------------------------------------------------------------------------------------------------------------------------------------------
-    let normalized_vector_proper_motion_y = proper_motion_y
-        / (proper_motion_x.powf(2.) + proper_motion_y.powf(2.) + proper_motion_z.powf(2.)).sqrt();
+    let normalized_vector_proper_motion_y = (proper_motion_y - y)
+        / ((proper_motion_x - x).powf(2.) + (proper_motion_y - y).powf(2.) + (proper_motion_z - z).powf(2.)).sqrt();
     //-----------------------------------------------------------------------------------------------------------------------------------------------
-    let normalized_vector_proper_motion_z = proper_motion_z
-        / (proper_motion_x.powf(2.) + proper_motion_y.powf(2.) + proper_motion_z.powf(2.)).sqrt();
+    let normalized_vector_proper_motion_z = (proper_motion_z - z)
+        / ((proper_motion_x - x).powf(2.) + (proper_motion_y - y).powf(2.) + (proper_motion_z - z).powf(2.)).sqrt();
     //-----------------------------------------------------------------------------------------------------------------------------------------------
     /*
     let normalized_vector_proper_motion_x = (proper_motion_x - x)
