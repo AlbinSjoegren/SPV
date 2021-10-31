@@ -1,6 +1,8 @@
 # SPV
 Calculates a stars position and velocity in the cartesian coordinate system.
 
+![Screenshot from 2021-10-31 20-32-59](https://user-images.githubusercontent.com/23136737/139598690-462153ec-104f-4a77-ab8d-b77505f9df56.png)
+
 ## Todo
 
 1. Expand the number of available operation
