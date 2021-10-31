@@ -1,21 +1,23 @@
 [package]
 name = "spv"
-version = "0.0.8"
+version = "0.1.0"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
-description = "This is a tool"
+description = "Calculates a stars position and velocity in the cartesian coordinate system."
 
 
 [dependencies]
 vec3 = "0.2.1"
-egui = "0.14.2" 
-eframe = "0.14.0"
+egui = "0.15.0" 
+eframe = "0.15.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+image = "0.23.14"
 
 [package.metadata.bundle]
 name = "SPV"
-short_description = "This is a tool"
-long_description = """
-This is a tool
-"""
+short_description = "Calculates a stars position and velocity in the cartesian coordinate system."
+resources = ["src/data"]
+
+[package.metadata.appimage]
+resources = ["src/data"]
