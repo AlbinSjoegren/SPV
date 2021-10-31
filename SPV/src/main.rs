@@ -298,6 +298,7 @@ pub struct Canvas {
     general_img: TextureId,
     pos_vel_img: TextureId,
     export_img: TextureId,
+    organize_img: TextureId,
     //-----------------------------------------------------------------------------------------------------------------------------------------------
     general_toggle: bool,
     pos_vel_toggle: bool,
@@ -411,6 +412,22 @@ impl epi::App for Canvas {
             .tex_allocator()
             .alloc_srgba_premultiplied(size_export, &pixels_export);
         //-----------------------------------------------------------------------------------------------------------------------------------------------
+        let image_data_organize = include_bytes!("data/MenuOrganize.png");
+        let image_organize =
+            image::load_from_memory(image_data_organize).expect("Failed to load image");
+        let image_buffer_organize = image_organize.to_rgba8();
+        let size_organize = (350 as usize, 100 as usize);
+        let pixels_organize = image_buffer_organize.into_vec();
+        let pixels_organize: Vec<_> = pixels_organize
+            .chunks_exact(4)
+            .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
+            .collect();
+
+        // Allocate a texture:
+        self.organize_img = frame
+            .tex_allocator()
+            .alloc_srgba_premultiplied(size_organize, &pixels_organize);
+        //-----------------------------------------------------------------------------------------------------------------------------------------------
     }
     //-----------------------------------------------------------------------------------------------------------------------------------------------
     #[cfg(feature = "persistence")]
@@ -469,6 +486,20 @@ impl epi::App for Canvas {
             {
                 self.export_toggle = !self.export_toggle
             }
+
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                if ui
+                    .add(egui::ImageButton::new(
+                        self.organize_img,
+                        egui::Vec2::new(140., 40.),
+                    ))
+                    .clicked()
+                //-----------------------------------------------------------------------------------------------------------------------------------------------
+                {
+                    ui.ctx().memory().reset_areas();
+                }
+                ui.separator();
+            });
         });
         egui::TopBottomPanel::bottom("Result").show(ctx, |ui| {
             //-----------------------------------------------------------------------------------------------------------------------------------------------
@@ -552,8 +583,10 @@ impl epi::App for Canvas {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            let naming_window =
-                egui::Window::new("Name").anchor(egui::Align2::LEFT_TOP, (20f32, 20f32));
+            let naming_window = egui::Window::new("Name")
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
 
             if self.general_toggle == true {
                 ui.vertical(|ui| {
@@ -573,8 +606,10 @@ impl epi::App for Canvas {
                 });
             }
 
-            let distance_window =
-                egui::Window::new("Distance").anchor(egui::Align2::CENTER_TOP, (0f32, 20f32));
+            let distance_window = egui::Window::new("Distance")
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
 
             if self.pos_vel_toggle == true {
                 ui.vertical(|ui| {
@@ -601,7 +636,9 @@ impl epi::App for Canvas {
             }
 
             let ra_window = egui::Window::new("Right ascension")
-                .anchor(egui::Align2::CENTER_TOP, (0f32, 200f32));
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
 
             if self.pos_vel_toggle == true {
                 ui.vertical(|ui| {
@@ -670,8 +707,10 @@ impl epi::App for Canvas {
                 });
             }
 
-            let dec_window =
-                egui::Window::new("Declination").anchor(egui::Align2::CENTER_TOP, (0f32, 550f32));
+            let dec_window = egui::Window::new("Declination")
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
 
             if self.pos_vel_toggle == true {
                 ui.vertical(|ui| {
@@ -735,7 +774,9 @@ impl epi::App for Canvas {
             }
 
             let rv_window = egui::Window::new("Radial velocity")
-                .anchor(egui::Align2::RIGHT_TOP, (-20f32, 20f32));
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
 
             if self.pos_vel_toggle == true {
                 ui.vertical(|ui| {
@@ -762,7 +803,9 @@ impl epi::App for Canvas {
             }
 
             let pm_window = egui::Window::new("Proper motion")
-                .anchor(egui::Align2::RIGHT_TOP, (-20f32, 200f32));
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
 
             if self.pos_vel_toggle == true {
                 //-----------------------------------------------------------------------------------------------------------------------------------------------
@@ -813,8 +856,10 @@ impl epi::App for Canvas {
                 });
             }
 
-            let export_window =
-                egui::Window::new("Export file").anchor(egui::Align2::LEFT_BOTTOM, (20f32, -20f32));
+            let export_window = egui::Window::new("Export file")
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
 
             if self.export_toggle == true {
                 //-----------------------------------------------------------------------------------------------------------------------------------------------
