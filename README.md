@@ -4,7 +4,7 @@ Calculates a stars position and velocity in the cartesian coordinate system.
 
 ![logo_spv_1024_final](https://user-images.githubusercontent.com/23136737/139969949-60d55cb5-f877-4c16-9ad6-fdab05129c11.png)
 
-![Screenshot_2021-11-06_16-23-45](https://user-images.githubusercontent.com/23136737/140614928-790d0d26-37eb-4572-b548-52ffca3a2c40.png)
+![Screenshot_2021-11-10_22-32-21](https://user-images.githubusercontent.com/23136737/141196735-22a798b9-7920-46d0-97cb-ec847d1b12c4.png)
 
 ## Todo
 
@@ -46,13 +46,13 @@ Multiplying by the radial velocity gives us the coordinates of the resulting vec
 
 ### Proper motion
 
-![image](https://user-images.githubusercontent.com/23136737/138673423-da75f408-ac52-4f76-8589-650d31121a03.png) 
+![Screenshot_2021-11-10_22-29-13](https://user-images.githubusercontent.com/23136737/141196522-d05177d0-b6fd-4052-b36e-5d7d9a0d26a8.png)
 
 Getting the position the object will be at in one second by using the same formula as for position.
 
-![image](https://user-images.githubusercontent.com/23136737/138673463-6935ef95-de6e-4e52-9ad4-0b944e8dbdbe.png) 
+![Screenshot_2021-11-10_22-29-29](https://user-images.githubusercontent.com/23136737/141196405-2007ae92-b2a0-4685-82d9-62cb3d37b9df.png)
 
-Another unitvector pointing from the object to it's new position.
+Resetting the origin of the vector to the current position
 
 ![image](https://user-images.githubusercontent.com/23136737/138673506-a15b866f-e014-43a6-a1cf-da586e3e2ef1.png) 
 
