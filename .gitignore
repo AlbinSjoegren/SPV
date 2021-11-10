@@ -1,5 +1,5 @@
 target
 Cargo.lock
-spv-0.2.0-x86_64.AppImage
+spv-0.2.1-x86_64.AppImage
 *.nc
 *.DS_store
