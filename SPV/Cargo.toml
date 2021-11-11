@@ -1,6 +1,6 @@
 [package]
 name = "spv"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
 description = "Calculates a stars position and velocity in the cartesian coordinate system."
@@ -18,6 +18,7 @@ image = "0.23.14"
 name = "SPV"
 short_description = "Calculates a stars position and velocity in the cartesian coordinate system."
 resources = ["src/data"]
+icon = ["icon.png"]
 
 [package.metadata.appimage]
 resources = ["src/data"]

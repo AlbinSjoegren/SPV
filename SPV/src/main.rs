@@ -64,21 +64,23 @@ fn velocity(
     radial_velocity: f64,
 ) -> (f64, f64, f64) {
     let proper_motion_x = distance
-        * (((right_ascension + ((proper_motion_ra * 0.00027777777777778) / 3600.)).to_radians())
-            .cos())
-        * ((((declination + ((proper_motion_dec * 0.00027777777777778) / 3600.)) + 90.)
+        * (((right_ascension + ((proper_motion_ra * 0.00027777777777778) / 31556926.))
+            .to_radians())
+        .cos())
+        * ((((declination + ((proper_motion_dec * 0.00027777777777778) / 31556926.)) + 90.)
             .to_radians())
         .sin());
 
     let proper_motion_y = distance
-        * (((right_ascension + ((proper_motion_ra * 0.00027777777777778) / 3600.)).to_radians())
-            .sin())
-        * ((((declination + ((proper_motion_dec * 0.00027777777777778) / 3600.)) + 90.)
+        * (((right_ascension + ((proper_motion_ra * 0.00027777777777778) / 31556926.))
+            .to_radians())
+        .sin())
+        * ((((declination + ((proper_motion_dec * 0.00027777777777778) / 31556926.)) + 90.)
             .to_radians())
         .sin());
 
     let proper_motion_z = distance
-        * ((((declination + ((proper_motion_dec * 0.00027777777777778) / 3600.)) + 90.)
+        * ((((declination + ((proper_motion_dec * 0.00027777777777778) / 31556926.)) + 90.)
             .to_radians())
         .cos());
 
