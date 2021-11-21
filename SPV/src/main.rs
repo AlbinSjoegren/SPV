@@ -1,9 +1,7 @@
 #![windows_subsystem = "windows"]
 #![allow(unused_assignments)]
 
-use crate::epaint::TextureId;
 use eframe::{egui, epi};
-use egui::epaint;
 
 fn main() {
     let app = Canvas::default();
@@ -120,14 +118,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 
 struct Export {
+    name: String,
     x_pos: f64,
     y_pos: f64,
     z_pos: f64,
-
     x_vel: f64,
     y_vel: f64,
     z_vel: f64,
-
     new_base_x_x: f64,
     new_base_x_y: f64,
     new_base_x_z: f64,
@@ -137,8 +134,6 @@ struct Export {
     new_base_z_x: f64,
     new_base_z_y: f64,
     new_base_z_z: f64,
-
-    name: String,
 }
 
 use serde_json;
@@ -146,6 +141,7 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 
 fn export_json(
+    name_str: String,
     x: f64,
     y: f64,
     z: f64,
@@ -161,17 +157,15 @@ fn export_json(
     new_base_z_x: f64,
     new_base_z_y: f64,
     new_base_z_z: f64,
-    name_str: String,
 ) {
     let data = Export {
+        name: name_str,
         x_pos: x,
         y_pos: y,
         z_pos: z,
-
         x_vel: x_v,
         y_vel: y_v,
         z_vel: z_v,
-
         new_base_x_x: new_base_x_x,
         new_base_x_y: new_base_x_y,
         new_base_x_z: new_base_x_z,
@@ -181,8 +175,6 @@ fn export_json(
         new_base_z_x: new_base_z_x,
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
-
-        name: name_str,
     };
 
     // write out the file
@@ -192,6 +184,7 @@ fn export_json(
 }
 
 fn export_txt(
+    name_str: String,
     x: f64,
     y: f64,
     z: f64,
@@ -207,17 +200,15 @@ fn export_txt(
     new_base_z_x: f64,
     new_base_z_y: f64,
     new_base_z_z: f64,
-    name_str: String,
 ) {
     let data = Export {
+        name: name_str,
         x_pos: x,
         y_pos: y,
         z_pos: z,
-
         x_vel: x_v,
         y_vel: y_v,
         z_vel: z_v,
-
         new_base_x_x: new_base_x_x,
         new_base_x_y: new_base_x_y,
         new_base_x_z: new_base_x_z,
@@ -227,8 +218,6 @@ fn export_txt(
         new_base_z_x: new_base_z_x,
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
-
-        name: name_str,
     };
 
     let mut buffer = File::create("data.txt").unwrap();
@@ -304,16 +293,12 @@ pub struct Canvas {
     new_base_z_y: f64,
     new_base_z_z: f64,
 
-    general_img: TextureId,
-    pos_vel_img: TextureId,
-    export_img: TextureId,
-    organize_img: TextureId,
-    euler_angle_transformations_img: TextureId,
-
     general_toggle: bool,
     pos_vel_toggle: bool,
     export_toggle: bool,
     euler_angle_transformations_toggle: bool,
+    passtrough_toggle: bool,
+    results_toggle: bool,
 }
 
 impl epi::App for Canvas {
@@ -363,90 +348,6 @@ impl epi::App for Canvas {
         style.visuals.widgets.open.bg_fill = egui::Color32::from_rgb(255, 0, 0);
 
         ctx.set_style(style);
-
-        let image_data_general = include_bytes!("data/MenuGeneral.png");
-        let image_general =
-            image::load_from_memory(image_data_general).expect("Failed to load image");
-        let image_buffer_general = image_general.to_rgba8();
-        let size_general = (350 as usize, 100 as usize);
-        let pixels_general = image_buffer_general.into_vec();
-        let pixels_general: Vec<_> = pixels_general
-            .chunks_exact(4)
-            .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            .collect();
-
-        // Allocate a texture:
-        self.general_img = frame
-            .tex_allocator()
-            .alloc_srgba_premultiplied(size_general, &pixels_general);
-
-        let image_data_pos_vel = include_bytes!("data/MenuPos&Vel.png");
-        let image_pos_vel =
-            image::load_from_memory(image_data_pos_vel).expect("Failed to load image");
-        let image_buffer_pos_vel = image_pos_vel.to_rgba8();
-        let size_pos_vel = (350 as usize, 100 as usize);
-        let pixels_pos_vel = image_buffer_pos_vel.into_vec();
-        let pixels_pos_vel: Vec<_> = pixels_pos_vel
-            .chunks_exact(4)
-            .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            .collect();
-
-        // Allocate a texture:
-        self.pos_vel_img = frame
-            .tex_allocator()
-            .alloc_srgba_premultiplied(size_pos_vel, &pixels_pos_vel);
-
-        let image_data_export = include_bytes!("data/MenuExport.png");
-        let image_export =
-            image::load_from_memory(image_data_export).expect("Failed to load image");
-        let image_buffer_export = image_export.to_rgba8();
-        let size_export = (350 as usize, 100 as usize);
-        let pixels_export = image_buffer_export.into_vec();
-        let pixels_export: Vec<_> = pixels_export
-            .chunks_exact(4)
-            .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            .collect();
-
-        // Allocate a texture:
-        self.export_img = frame
-            .tex_allocator()
-            .alloc_srgba_premultiplied(size_export, &pixels_export);
-
-        let image_data_organize = include_bytes!("data/MenuOrganize.png");
-        let image_organize =
-            image::load_from_memory(image_data_organize).expect("Failed to load image");
-        let image_buffer_organize = image_organize.to_rgba8();
-        let size_organize = (350 as usize, 100 as usize);
-        let pixels_organize = image_buffer_organize.into_vec();
-        let pixels_organize: Vec<_> = pixels_organize
-            .chunks_exact(4)
-            .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            .collect();
-
-        // Allocate a texture:
-        self.organize_img = frame
-            .tex_allocator()
-            .alloc_srgba_premultiplied(size_organize, &pixels_organize);
-
-        let image_data_euler_angle_transformations =
-            include_bytes!("data/MenuEulerAngleTransformations.png");
-        let image_euler_angle_transformations =
-            image::load_from_memory(image_data_euler_angle_transformations)
-                .expect("Failed to load image");
-        let image_buffer_euler_angle_transformations = image_euler_angle_transformations.to_rgba8();
-        let size_euler_angle_transformations = (350 as usize, 100 as usize);
-        let pixels_euler_angle_transformations =
-            image_buffer_euler_angle_transformations.into_vec();
-        let pixels_euler_angle_transformations: Vec<_> = pixels_euler_angle_transformations
-            .chunks_exact(4)
-            .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            .collect();
-
-        // Allocate a texture:
-        self.euler_angle_transformations_img = frame.tex_allocator().alloc_srgba_premultiplied(
-            size_euler_angle_transformations,
-            &pixels_euler_angle_transformations,
-        );
     }
 
     #[cfg(feature = "persistence")]
@@ -465,198 +366,41 @@ impl epi::App for Canvas {
 
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
         egui::SidePanel::left("Tabs").show(ctx, |ui| {
-            if ui
-                .add(egui::ImageButton::new(
-                    self.general_img,
-                    egui::Vec2::new(140., 40.),
-                ))
-                .clicked()
-            {
+            if ui.add(egui::Button::new(format!("General"))).clicked() {
                 self.general_toggle = !self.general_toggle
             }
 
-            if ui
-                .add(egui::ImageButton::new(
-                    self.pos_vel_img,
-                    egui::Vec2::new(140., 40.),
-                ))
-                .clicked()
-            {
+            if ui.add(egui::Button::new(format!("Pos & Vel"))).clicked() {
                 self.pos_vel_toggle = !self.pos_vel_toggle
             }
 
             if ui
-                .add(egui::ImageButton::new(
-                    self.euler_angle_transformations_img,
-                    egui::Vec2::new(140., 40.),
-                ))
+                .add(egui::Button::new(format!(
+                    "Euler angle
+transformations"
+                )))
                 .clicked()
             {
                 self.euler_angle_transformations_toggle = !self.euler_angle_transformations_toggle
             }
 
-            ui.separator();
-            if ui
-                .add(egui::ImageButton::new(
-                    self.export_img,
-                    egui::Vec2::new(140., 40.),
-                ))
-                .clicked()
-            {
+            if ui.add(egui::Button::new(format!("Passtrough"))).clicked() {
+                self.passtrough_toggle = !self.passtrough_toggle
+            }
+
+            if ui.add(egui::Button::new(format!("Results"))).clicked() {
+                self.results_toggle = !self.results_toggle
+            }
+
+            if ui.add(egui::Button::new(format!("Export"))).clicked() {
                 self.export_toggle = !self.export_toggle
             }
 
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                if ui
-                    .add(egui::ImageButton::new(
-                        self.organize_img,
-                        egui::Vec2::new(140., 40.),
-                    ))
-                    .clicked()
-                {
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+                if ui.add(egui::Button::new(format!("Organize"))).clicked() {
                     ui.ctx().memory().reset_areas();
                 }
-                ui.separator();
             });
-        });
-        egui::TopBottomPanel::bottom("Result").show(ctx, |ui| {
-            ui.add(egui::Label::new(format!("Resulting position (km)")).heading());
-
-            ui.add(
-                egui::Label::new(format!(
-                    "{:?}",
-                    position(
-                        self.distance_km.clone(),
-                        self.right_ascension.clone(),
-                        self.declination.clone()
-                    )
-                ))
-                .monospace(),
-            );
-
-            ui.separator();
-
-            ui.add(egui::Label::new(format!("Resulting velocity (km/s)")).heading());
-
-            ui.add(
-                egui::Label::new(format!(
-                    "{:?}",
-                    velocity(
-                        self.distance_km.clone(),
-                        self.right_ascension.clone(),
-                        self.declination.clone(),
-                        self.proper_motion_ra.clone(),
-                        self.proper_motion_dec.clone(),
-                        self.x.clone(),
-                        self.y.clone(),
-                        self.z.clone(),
-                        self.radial_velocity.clone(),
-                    )
-                ))
-                .monospace(),
-            );
-
-            ui.separator();
-
-            ui.add(egui::Label::new(format!("New base")).heading());
-
-            ui.add(
-                egui::Label::new(format!(
-                    "X-NEW: x({:?}), y({:?}), z({:?})",
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).0,
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).1,
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).2
-                ))
-                .monospace(),
-            );
-            ui.add(
-                egui::Label::new(format!(
-                    "Y-NEW: x({:?}), y({:?}), z({:?})",
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).3,
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).4,
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).5
-                ))
-                .monospace(),
-            );
-            ui.add(
-                egui::Label::new(format!(
-                    "Z-NEW: x({:?}), y({:?}), z({:?})",
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).6,
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).7,
-                    euler_angle_transformations(self.lotn, self.aop, self.i,).8
-                ))
-                .monospace(),
-            );
-
-            self.x = position(
-                self.distance_km.clone(),
-                self.right_ascension.clone(),
-                self.declination.clone(),
-            )
-            .0;
-
-            self.y = position(
-                self.distance_km.clone(),
-                self.right_ascension.clone(),
-                self.declination.clone(),
-            )
-            .1;
-
-            self.z = position(
-                self.distance_km.clone(),
-                self.right_ascension.clone(),
-                self.declination.clone(),
-            )
-            .2;
-
-            self.x_v = velocity(
-                self.distance_km.clone(),
-                self.right_ascension.clone(),
-                self.declination.clone(),
-                self.proper_motion_ra.clone(),
-                self.proper_motion_dec.clone(),
-                self.x.clone(),
-                self.y.clone(),
-                self.z.clone(),
-                self.radial_velocity.clone(),
-            )
-            .0;
-
-            self.y_v = velocity(
-                self.distance_km.clone(),
-                self.right_ascension.clone(),
-                self.declination.clone(),
-                self.proper_motion_ra.clone(),
-                self.proper_motion_dec.clone(),
-                self.x.clone(),
-                self.y.clone(),
-                self.z.clone(),
-                self.radial_velocity.clone(),
-            )
-            .1;
-
-            self.z_v = velocity(
-                self.distance_km.clone(),
-                self.right_ascension.clone(),
-                self.declination.clone(),
-                self.proper_motion_ra.clone(),
-                self.proper_motion_dec.clone(),
-                self.x.clone(),
-                self.y.clone(),
-                self.z.clone(),
-                self.radial_velocity.clone(),
-            )
-            .2;
-
-            self.new_base_x_x = euler_angle_transformations(self.lotn, self.aop, self.i).0;
-            self.new_base_x_y = euler_angle_transformations(self.lotn, self.aop, self.i).1;
-            self.new_base_x_z = euler_angle_transformations(self.lotn, self.aop, self.i).2;
-            self.new_base_y_x = euler_angle_transformations(self.lotn, self.aop, self.i).3;
-            self.new_base_y_y = euler_angle_transformations(self.lotn, self.aop, self.i).4;
-            self.new_base_y_z = euler_angle_transformations(self.lotn, self.aop, self.i).5;
-            self.new_base_z_x = euler_angle_transformations(self.lotn, self.aop, self.i).6;
-            self.new_base_z_y = euler_angle_transformations(self.lotn, self.aop, self.i).7;
-            self.new_base_z_z = euler_angle_transformations(self.lotn, self.aop, self.i).8;
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -943,6 +687,175 @@ impl epi::App for Canvas {
                 });
             }
 
+            let passtrough_window = egui::Window::new("Passtrough")
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
+
+            if self.passtrough_toggle == true {
+                ui.vertical(|_ui| {
+                    passtrough_window.show(ctx, |ui| {});
+                });
+            }
+
+            let results_window = egui::Window::new("Results")
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
+
+            if self.results_toggle == true {
+                ui.vertical(|_ui| {
+                    results_window.show(ctx, |ui| {
+                        ui.add(egui::Label::new(format!("Resulting position (km)")).heading());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "{:?}",
+                                position(
+                                    self.distance_km.clone(),
+                                    self.right_ascension.clone(),
+                                    self.declination.clone()
+                                )
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.separator();
+
+                        ui.add(egui::Label::new(format!("Resulting velocity (km/s)")).heading());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "{:?}",
+                                velocity(
+                                    self.distance_km.clone(),
+                                    self.right_ascension.clone(),
+                                    self.declination.clone(),
+                                    self.proper_motion_ra.clone(),
+                                    self.proper_motion_dec.clone(),
+                                    self.x.clone(),
+                                    self.y.clone(),
+                                    self.z.clone(),
+                                    self.radial_velocity.clone(),
+                                )
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.separator();
+
+                        ui.add(egui::Label::new(format!("New base")).heading());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "X-NEW: x({:?}), y({:?}), z({:?})",
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).0,
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).1,
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).2
+                            ))
+                            .monospace(),
+                        );
+                        ui.add(
+                            egui::Label::new(format!(
+                                "Y-NEW: x({:?}), y({:?}), z({:?})",
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).3,
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).4,
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).5
+                            ))
+                            .monospace(),
+                        );
+                        ui.add(
+                            egui::Label::new(format!(
+                                "Z-NEW: x({:?}), y({:?}), z({:?})",
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).6,
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).7,
+                                euler_angle_transformations(self.lotn, self.aop, self.i,).8
+                            ))
+                            .monospace(),
+                        );
+
+                        self.x = position(
+                            self.distance_km.clone(),
+                            self.right_ascension.clone(),
+                            self.declination.clone(),
+                        )
+                        .0;
+
+                        self.y = position(
+                            self.distance_km.clone(),
+                            self.right_ascension.clone(),
+                            self.declination.clone(),
+                        )
+                        .1;
+
+                        self.z = position(
+                            self.distance_km.clone(),
+                            self.right_ascension.clone(),
+                            self.declination.clone(),
+                        )
+                        .2;
+
+                        self.x_v = velocity(
+                            self.distance_km.clone(),
+                            self.right_ascension.clone(),
+                            self.declination.clone(),
+                            self.proper_motion_ra.clone(),
+                            self.proper_motion_dec.clone(),
+                            self.x.clone(),
+                            self.y.clone(),
+                            self.z.clone(),
+                            self.radial_velocity.clone(),
+                        )
+                        .0;
+
+                        self.y_v = velocity(
+                            self.distance_km.clone(),
+                            self.right_ascension.clone(),
+                            self.declination.clone(),
+                            self.proper_motion_ra.clone(),
+                            self.proper_motion_dec.clone(),
+                            self.x.clone(),
+                            self.y.clone(),
+                            self.z.clone(),
+                            self.radial_velocity.clone(),
+                        )
+                        .1;
+
+                        self.z_v = velocity(
+                            self.distance_km.clone(),
+                            self.right_ascension.clone(),
+                            self.declination.clone(),
+                            self.proper_motion_ra.clone(),
+                            self.proper_motion_dec.clone(),
+                            self.x.clone(),
+                            self.y.clone(),
+                            self.z.clone(),
+                            self.radial_velocity.clone(),
+                        )
+                        .2;
+
+                        self.new_base_x_x =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).0;
+                        self.new_base_x_y =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).1;
+                        self.new_base_x_z =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).2;
+                        self.new_base_y_x =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).3;
+                        self.new_base_y_y =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).4;
+                        self.new_base_y_z =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).5;
+                        self.new_base_z_x =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).6;
+                        self.new_base_z_y =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).7;
+                        self.new_base_z_z =
+                            euler_angle_transformations(self.lotn, self.aop, self.i).8;
+                    });
+                });
+            }
+
             let export_window = egui::Window::new("Export file")
                 .auto_sized()
                 .collapsible(true)
@@ -956,6 +869,7 @@ impl epi::App for Canvas {
                         ui.horizontal_wrapped(|ui| {
                             if ui.add(egui::Button::new("JSON")).clicked() {
                                 export_json(
+                                    self.name_str.clone(),
                                     self.x,
                                     self.y,
                                     self.z,
@@ -971,12 +885,12 @@ impl epi::App for Canvas {
                                     self.new_base_z_x,
                                     self.new_base_z_y,
                                     self.new_base_z_z,
-                                    self.name_str.clone(),
                                 );
                             }
 
                             if ui.add(egui::Button::new("TXT")).clicked() {
                                 export_txt(
+                                    self.name_str.clone(),
                                     self.x,
                                     self.y,
                                     self.z,
@@ -992,7 +906,6 @@ impl epi::App for Canvas {
                                     self.new_base_z_x,
                                     self.new_base_z_y,
                                     self.new_base_z_z,
-                                    self.name_str.clone(),
                                 );
                             }
                         });
