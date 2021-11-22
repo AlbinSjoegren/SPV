@@ -15,15 +15,43 @@ fn main() {
     eframe::run_native(Box::new(app), options);
 }
 
-fn pos_relative() {
+fn pos_relative(
+    a: f64,
+    b: f64,
+    e: f64,
+    pos_a_x: f64,
+    pos_a_y: f64,
+    pos_a_z: f64,
+    pos_b_x: f64,
+    pos_b_y: f64,
+    pos_b_z: f64,
+    new_base_x_x: f64,
+    new_base_x_y: f64,
+    new_base_x_z: f64,
+    new_base_y_x: f64,
+    new_base_y_y: f64,
+    new_base_y_z: f64,
+) {
     let mut x = 0.;
     let mut y = 0.;
-    let a = 0.;
-    let b = 0.;
+    let mut vec_x = vec![];
+    let mut vec_y = vec![];
+    let mut vec_z = vec![];
 
     for n in 0..360 {
         x = a * f64::from(n).to_radians().cos();
         y = b * f64::from(n).to_radians().sin();
+        let rel_x_old = pos_a_x - pos_b_x;
+        let rel_y = pos_a_y - pos_b_y;
+        let rel_z = pos_a_z - pos_b_z;
+        let rel_x = rel_x_old + (a * e);
+        let new_rel_x = (new_base_x_x * rel_x) + (new_base_x_y * rel_y) + (new_base_x_z * rel_z);
+        let new_rel_y = (new_base_y_x * rel_x) + (new_base_y_y * rel_y) + (new_base_y_z * rel_z);
+        let res_x = x - new_rel_x;
+        let res_y = y - new_rel_y;
+        let x_result = 
+        vec_x.push(res_x);
+        vec_y.push(res_y);
     }
 }
 
@@ -372,32 +400,30 @@ impl epi::App for Canvas {
 
         ctx.set_style(style);
 
-
         let font_droidsansmono = include_bytes!("data/Droid Sans Mono Nerd Font Complete Mono.otf");
-        
         let mut font = FontDefinitions::default();
-        
-        font.font_data
-            .insert("Droid Sans Mono".to_string(), Cow::from(&font_droidsansmono[..]));
-        
+
+        font.font_data.insert(
+            "Droid Sans Mono".to_string(),
+            Cow::from(&font_droidsansmono[..]),
+        );
         font.fonts_for_family
             .insert(FontFamily::Monospace, vec!["Droid Sans Mono".to_string()]);
-        
-        font.fonts_for_family
-            .insert(FontFamily::Proportional, vec!["Droid Sans Mono".to_string()]);
-        
+
+        font.fonts_for_family.insert(
+            FontFamily::Proportional,
+            vec!["Droid Sans Mono".to_string()],
+        );
         /*
         font.family_and_size.insert(
             epaint::text::TextStyle::Body,
             (epaint::text::FontFamily::Proportional, 10.0),
         );
-        
         font.family_and_size.insert(
             epaint::text::TextStyle::Body,
             (epaint::text::FontFamily::Monospace, 10.0),
         );
         */
-        
         ctx.set_fonts(font);
     }
 
