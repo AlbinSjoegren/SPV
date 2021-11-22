@@ -15,6 +15,18 @@ fn main() {
     eframe::run_native(Box::new(app), options);
 }
 
+fn pos_relative() {
+    let mut x = 0.;
+    let mut y = 0.;
+    let a = 0.;
+    let b = 0.;
+
+    for n in 0..360 {
+        x = a * f64::from(n).to_radians().cos();
+        y = b * f64::from(n).to_radians().sin();
+    }
+}
+
 fn euler_angle_transformations(
     lotn: f64,
     aop: f64,
@@ -113,6 +125,7 @@ fn velocity(
     return (x_v, y_v, z_v);
 }
 
+use egui::{FontDefinitions, FontFamily};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -134,9 +147,11 @@ struct Export {
     new_base_z_x: f64,
     new_base_z_y: f64,
     new_base_z_z: f64,
+    mass: f64,
 }
 
 use serde_json;
+use std::borrow::Cow;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
@@ -157,6 +172,7 @@ fn export_json(
     new_base_z_x: f64,
     new_base_z_y: f64,
     new_base_z_z: f64,
+    mass: f64,
 ) {
     let data = Export {
         name: name_str,
@@ -175,6 +191,7 @@ fn export_json(
         new_base_z_x: new_base_z_x,
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
+        mass: mass,
     };
 
     // write out the file
@@ -200,6 +217,7 @@ fn export_txt(
     new_base_z_x: f64,
     new_base_z_y: f64,
     new_base_z_z: f64,
+    mass: f64,
 ) {
     let data = Export {
         name: name_str,
@@ -218,6 +236,7 @@ fn export_txt(
         new_base_z_x: new_base_z_x,
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
+        mass: mass,
     };
 
     let mut buffer = File::create("data.txt").unwrap();
@@ -293,6 +312,10 @@ pub struct Canvas {
     new_base_z_y: f64,
     new_base_z_z: f64,
 
+    pass_mass: f64,
+
+    pass_mass_str: String,
+
     general_toggle: bool,
     pos_vel_toggle: bool,
     export_toggle: bool,
@@ -348,6 +371,34 @@ impl epi::App for Canvas {
         style.visuals.widgets.open.bg_fill = egui::Color32::from_rgb(255, 0, 0);
 
         ctx.set_style(style);
+
+
+        let font_droidsansmono = include_bytes!("data/Droid Sans Mono Nerd Font Complete Mono.otf");
+        
+        let mut font = FontDefinitions::default();
+        
+        font.font_data
+            .insert("Droid Sans Mono".to_string(), Cow::from(&font_droidsansmono[..]));
+        
+        font.fonts_for_family
+            .insert(FontFamily::Monospace, vec!["Droid Sans Mono".to_string()]);
+        
+        font.fonts_for_family
+            .insert(FontFamily::Proportional, vec!["Droid Sans Mono".to_string()]);
+        
+        /*
+        font.family_and_size.insert(
+            epaint::text::TextStyle::Body,
+            (epaint::text::FontFamily::Proportional, 10.0),
+        );
+        
+        font.family_and_size.insert(
+            epaint::text::TextStyle::Body,
+            (epaint::text::FontFamily::Monospace, 10.0),
+        );
+        */
+        
+        ctx.set_fonts(font);
     }
 
     #[cfg(feature = "persistence")]
@@ -694,7 +745,17 @@ transformations"
 
             if self.passtrough_toggle == true {
                 ui.vertical(|_ui| {
-                    passtrough_window.show(ctx, |ui| {});
+                    passtrough_window.show(ctx, |ui| {
+                        ui.add(egui::Label::new(format!("Mass (kg)")).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.pass_mass_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.pass_mass = self.pass_mass_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("{} kg", self.pass_mass)).monospace());
+                    });
                 });
             }
 
@@ -885,6 +946,7 @@ transformations"
                                     self.new_base_z_x,
                                     self.new_base_z_y,
                                     self.new_base_z_z,
+                                    self.pass_mass,
                                 );
                             }
 
@@ -906,6 +968,7 @@ transformations"
                                     self.new_base_z_x,
                                     self.new_base_z_y,
                                     self.new_base_z_z,
+                                    self.pass_mass,
                                 );
                             }
                         });
