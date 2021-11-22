@@ -49,9 +49,10 @@ fn pos_relative(
         let new_rel_y = (new_base_y_x * rel_x) + (new_base_y_y * rel_y) + (new_base_y_z * rel_z);
         let res_x = x - new_rel_x;
         let res_y = y - new_rel_y;
-        let x_result = 
-        vec_x.push(res_x);
+        let res_z = 0.;
+        let x_result = vec_x.push(res_x);
         vec_y.push(res_y);
+        vec_z.push(res_z);
     }
 }
 
@@ -372,15 +373,15 @@ impl epi::App for Canvas {
 
         let mut style: egui::Style = (*ctx.style()).clone();
 
-        style.visuals.extreme_bg_color = egui::Color32::from_rgb(255, 255, 250);
+        style.visuals.extreme_bg_color = egui::Color32::from_rgb(30, 34, 39);
 
-        style.visuals.faint_bg_color = egui::Color32::from_rgb(178, 176, 155);
+        style.visuals.faint_bg_color = egui::Color32::from_rgb(30, 34, 39);
 
-        style.visuals.code_bg_color = egui::Color32::from_rgb(235, 231, 233);
+        style.visuals.code_bg_color = egui::Color32::from_rgb(30, 34, 39);
 
-        style.visuals.hyperlink_color = egui::Color32::from_rgb(255, 69, 0);
+        style.visuals.hyperlink_color = egui::Color32::from_rgb(255, 0, 0);
 
-        style.visuals.override_text_color = Some(egui::Color32::from_rgb(32, 30, 31));
+        style.visuals.override_text_color = Some(egui::Color32::from_rgb(160, 167, 179));
 
         style.visuals.window_corner_radius = 0.1;
 
@@ -388,15 +389,18 @@ impl epi::App for Canvas {
 
         style.visuals.collapsing_header_frame = true;
 
-        style.visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(235, 231, 233);
+        style.visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(35, 39, 46);
+
+        style.visuals.widgets.noninteractive.fg_stroke =
+            egui::Stroke::new(0., egui::Color32::from_rgb(160, 167, 179));
 
         style.visuals.widgets.inactive.bg_fill = egui::Color32::TRANSPARENT;
 
-        style.visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(255, 69, 0);
+        style.visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(30, 34, 39);
 
-        style.visuals.widgets.active.bg_fill = egui::Color32::from_rgb(255, 0, 0);
+        style.visuals.widgets.active.bg_fill = egui::Color32::from_rgb(30, 34, 39);
 
-        style.visuals.widgets.open.bg_fill = egui::Color32::from_rgb(255, 0, 0);
+        style.visuals.widgets.open.bg_fill = egui::Color32::from_rgb(30, 34, 39);
 
         ctx.set_style(style);
 
