@@ -15,10 +15,11 @@ fn main() {
     eframe::run_native(Box::new(app), options);
 }
 
-fn pos_relative(
+fn pos_vel_relative(
     a: f64,
     b: f64,
     e: f64,
+    period: f64,
     pos_a_x: f64,
     pos_a_y: f64,
     pos_a_z: f64,
@@ -34,6 +35,8 @@ fn pos_relative(
 ) {
     let mut x = 0.;
     let mut y = 0.;
+    let mut x_t = 0.;
+    let mut y_t = 0.;
     let mut vec_x = vec![];
     let mut vec_y = vec![];
     let mut vec_z = vec![];
@@ -41,6 +44,20 @@ fn pos_relative(
     for n in 0..360 {
         x = a * f64::from(n).to_radians().cos();
         y = b * f64::from(n).to_radians().sin();
+        x_t = ((0. - a) * f64::from(n).to_radians().sin())
+            / (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
+                + (b.powf(2.) * f64::from(n).to_radians().cos().powf(2.)))
+            .sqrt());
+        y_t = (b * f64::from(n).to_radians().cos())
+            / (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
+                + (b.powf(2.) * f64::from(n).to_radians().cos().powf(2.)))
+            .sqrt());
+        let mu = ((2. * std::f64::consts::PI) / period).powf(2.) * a.powf(3.);
+        let p = a * (1. - e.powf(2.));
+        let r = p / (1. + (e * f64::from(n).to_radians().cos()));
+        let v = (((2. * mu) / r) - (mu / a)).sqrt();
+        let x_v = v * x_t;
+        let y_v = v * y_t;
         let rel_x_old = pos_a_x - pos_b_x;
         let rel_y = pos_a_y - pos_b_y;
         let rel_z = pos_a_z - pos_b_z;
@@ -50,7 +67,7 @@ fn pos_relative(
         let res_x = x - new_rel_x;
         let res_y = y - new_rel_y;
         let res_z = 0.;
-        let x_result = vec_x.push(res_x);
+        vec_x.push(res_x);
         vec_y.push(res_y);
         vec_z.push(res_z);
     }
