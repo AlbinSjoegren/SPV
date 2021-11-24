@@ -32,6 +32,9 @@ fn pos_vel_relative(
     new_base_y_x: f64,
     new_base_y_y: f64,
     new_base_y_z: f64,
+    new_base_z_x: f64,
+    new_base_z_y: f64,
+    new_base_z_z: f64,
 ) {
     let mut x = 0.;
     let mut y = 0.;
@@ -40,10 +43,27 @@ fn pos_vel_relative(
     let mut vec_x = vec![];
     let mut vec_y = vec![];
     let mut vec_z = vec![];
+    let mut vec_x_v = vec![];
+    let mut vec_y_v = vec![];
+    let mut vec_z_v = vec![];
 
     for n in 0..360 {
         x = a * f64::from(n).to_radians().cos();
         y = b * f64::from(n).to_radians().sin();
+        let rel_x_old = pos_a_x - pos_b_x;
+        let rel_y = pos_a_y - pos_b_y;
+        let rel_z = pos_a_z - pos_b_z;
+        let rel_x = rel_x_old + (a * e);
+        let new_rel_x = (new_base_x_x * rel_x) + (new_base_x_y * rel_y) + (new_base_x_z * rel_z);
+        let new_rel_y = (new_base_y_x * rel_x) + (new_base_y_y * rel_y) + (new_base_y_z * rel_z);
+        let res_x = x - new_rel_x;
+        let res_y = y - new_rel_y;
+        let res_z = 0.;
+        vec_x.push(res_x);
+        vec_y.push(res_y);
+        vec_z.push(res_z);
+
+        //Velocity of B
         x_t = ((0. - a) * f64::from(n).to_radians().sin())
             / (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
                 + (b.powf(2.) * f64::from(n).to_radians().cos().powf(2.)))
@@ -58,18 +78,12 @@ fn pos_vel_relative(
         let v = (((2. * mu) / r) - (mu / a)).sqrt();
         let x_v = v * x_t;
         let y_v = v * y_t;
-        let rel_x_old = pos_a_x - pos_b_x;
-        let rel_y = pos_a_y - pos_b_y;
-        let rel_z = pos_a_z - pos_b_z;
-        let rel_x = rel_x_old + (a * e);
-        let new_rel_x = (new_base_x_x * rel_x) + (new_base_x_y * rel_y) + (new_base_x_z * rel_z);
-        let new_rel_y = (new_base_y_x * rel_x) + (new_base_y_y * rel_y) + (new_base_y_z * rel_z);
-        let res_x = x - new_rel_x;
-        let res_y = y - new_rel_y;
-        let res_z = 0.;
-        vec_x.push(res_x);
-        vec_y.push(res_y);
-        vec_z.push(res_z);
+        let res_x_v = (new_base_x_x * x_v) + (new_base_y_x * y_v);
+        let res_y_v = (new_base_x_y * x_v) + (new_base_y_y * y_v);
+        let res_z_v = (new_base_x_z * x_v) + (new_base_y_z * y_v);
+        vec_x_v.push(res_x_v);
+        vec_y_v.push(res_y_v);
+        vec_z_v.push(res_z_v);
     }
 }
 
