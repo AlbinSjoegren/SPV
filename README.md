@@ -2,8 +2,6 @@
 
 Calculates a stars position and velocity in the cartesian coordinate system.
 
-![logo_spv_1024_final](https://user-images.githubusercontent.com/23136737/139969949-60d55cb5-f877-4c16-9ad6-fdab05129c11.png)
-
 ![Screenshot_2021-11-10_22-32-21](https://user-images.githubusercontent.com/23136737/141196735-22a798b9-7920-46d0-97cb-ec847d1b12c4.png)
 
 ## Todo
