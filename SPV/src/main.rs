@@ -32,63 +32,99 @@ fn pos_vel_relative(
     new_base_y_x: f64,
     new_base_y_y: f64,
     new_base_y_z: f64,
-    new_base_z_x: f64,
-    new_base_z_y: f64,
-    new_base_z_z: f64,
 ) {
-    let mut x = 0.;
-    let mut y = 0.;
-    let mut x_t = 0.;
-    let mut y_t = 0.;
     let mut angle_vec = vec![];
-    let mut vec_x = vec![];
-    let mut vec_y = vec![];
-    let mut vec_z = vec![];
-    let mut vec_x_v = vec![];
-    let mut vec_y_v = vec![];
-    let mut vec_z_v = vec![];
+
+    let mut vec_x_a = vec![];
+    let mut vec_y_a = vec![];
+    let mut vec_z_a = vec![];
+
+    let mut vec_x_b = vec![];
+    let mut vec_y_b = vec![];
+    let mut vec_z_b = vec![];
+
+    let mut vec_x_v_a = vec![];
+    let mut vec_y_v_a = vec![];
+    let mut vec_z_v_a = vec![];
+
+    let mut vec_x_v_b = vec![];
+    let mut vec_y_v_b = vec![];
+    let mut vec_z_v_b = vec![];
+
+    let mut distance_vec = vec![];
 
     for n in (0_i32..=360_i32).step_by(1) {
-        angle_vec.push(n);
+        //Push the angle to a vector
+        angle_vec.push(f64::from(n));
 
-        x = a * f64::from(n).to_radians().cos();
-        y = b * f64::from(n).to_radians().sin();
+        //Position of B in new base
+        let x = a * f64::from(n).to_radians().cos();
+        let y = b * f64::from(n).to_radians().sin();
+
+        //Get non relative position of B in original base
         let rel_x_old = pos_b_x - pos_a_x;
+        let rel_x = rel_x_old + (a * e);
         let rel_y = pos_b_y - pos_a_y;
         let rel_z = pos_b_z - pos_a_z;
-        let rel_x = rel_x_old + (a * e);
-        let new_rel_x = (new_base_x_x * rel_x) + (new_base_x_y * rel_y) + (new_base_x_z * rel_z);
-        let new_rel_y = (new_base_y_x * rel_x) + (new_base_y_y * rel_y) + (new_base_y_z * rel_z);
-        let new_rel_z = (new_base_z_x * rel_x) + (new_base_z_y * rel_y) + (new_base_z_z * rel_z);
-        let res_x = x - new_rel_x;
-        let res_y = y - new_rel_y;
-        let res_z = new_rel_z;
-        vec_x.push(res_x);
-        vec_y.push(res_y);
-        vec_z.push(res_z);
+
+        //Get relative position in original base
+        let res_x_old = (new_base_x_x * x) + (new_base_y_x * y);
+        let res_y_old = (new_base_x_y * x) + (new_base_y_y * y);
+        let res_z_old = (new_base_x_z * x) + (new_base_y_z * y);
+
+        //Get difference in x, y and z
+        let res_x = res_x_old - rel_x;
+        let res_y = res_y_old - rel_y;
+        let res_z = res_z_old - rel_z;
+
+        //Get distance from relative positions to actual position in original base
+        let distance = (res_x.powf(2.) + res_y.powf(2.) + res_z.powf(2.)).sqrt();
+
+        //Pushing to vector
+        vec_x_b.push(res_x_old);
+        vec_y_b.push(res_y_old);
+        vec_z_b.push(res_z_old);
+
+        //Pushing to vector
+        distance_vec.push(distance);
+
+        //Position of A in original base
+        let x_a = a * e;
+        let y_a = 0.;
+        let z_a = 0.;
+
+        //Pushing to vector
+        vec_x_a.push(x_a);
+        vec_y_a.push(y_a);
+        vec_z_a.push(z_a);
+        vec_x_v_a.push(0.);
+        vec_y_v_a.push(0.);
+        vec_z_v_a.push(0.);
 
         //Velocity of B
-        x_t = ((0. - a) * f64::from(n).to_radians().sin())
-            * (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
-                + (b.powf(2.) * f64::from(n).to_radians().cos().powf(2.)))
-            .sqrt());
-        y_t = (b * f64::from(n).to_radians().cos())
-            * (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
-                + (b.powf(2.) * f64::from(n).to_radians().cos().powf(2.)))
-            .sqrt());
+        //Prep Values
         let mu = ((2. * std::f64::consts::PI) / period).powf(2.) * a.powf(3.);
         let p = a * (1. - e.powf(2.));
         let r = p / (1. + (e * f64::from(n).to_radians().cos()));
         let v = (((2. * mu) / r) - (mu / a)).sqrt();
-        let x_v = v * x_t;
-        let y_v = v * y_t;
+        let cos_theta = ((mu * p).sqrt()) / (v * r);
+
+        //Velocity in new base
+        let x_v = v * cos_theta;
+        let y_v = v * cos_theta.acos().sin();
+
+        //Velocity in original base
         let res_x_v = (new_base_x_x * x_v) + (new_base_y_x * y_v);
         let res_y_v = (new_base_x_y * x_v) + (new_base_y_y * y_v);
         let res_z_v = (new_base_x_z * x_v) + (new_base_y_z * y_v);
-        vec_x_v.push(res_x_v);
-        vec_y_v.push(res_y_v);
-        vec_z_v.push(res_z_v);
+
+        //Pushing to vector
+        vec_x_v_b.push(res_x_v);
+        vec_y_v_b.push(res_y_v);
+        vec_z_v_b.push(res_z_v);
     }
+
+    let minValue = distance_vec.iter().min().unwrap();
 }
 
 fn euler_angle_transformations(
