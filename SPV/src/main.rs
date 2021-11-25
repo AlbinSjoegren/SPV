@@ -17,7 +17,6 @@ fn main() {
 
 fn pos_vel_relative(
     a: f64,
-    b: f64,
     e: f64,
     period: f64,
     pos_a_x: f64,
@@ -32,6 +31,22 @@ fn pos_vel_relative(
     new_base_y_x: f64,
     new_base_y_y: f64,
     new_base_y_z: f64,
+) -> (
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
 ) {
     let mut angle_vec = vec![];
 
@@ -56,6 +71,9 @@ fn pos_vel_relative(
     for n in (0_i32..=360_i32).step_by(1) {
         //Push the angle to a vector
         angle_vec.push(f64::from(n));
+
+        //Defining the semi minor axis
+        let b = a * (1. - e.powf(2.)).sqrt();
 
         //Position of B in new base
         let x = a * f64::from(n).to_radians().cos();
@@ -103,7 +121,7 @@ fn pos_vel_relative(
 
         //Velocity of B
         //Prep Values
-        let mu = ((2. * std::f64::consts::PI) / period).powf(2.) * a.powf(3.);
+        let mu = (a.powf(3.)) / (((2. * std::f64::consts::PI) / (period / 31557600.)).powf(2.));
         let p = a * (1. - e.powf(2.));
         let r = p / (1. + (e * f64::from(n).to_radians().cos()));
         let v = (((2. * mu) / r) - (mu / a)).sqrt();
@@ -124,7 +142,54 @@ fn pos_vel_relative(
         vec_z_v_b.push(res_z_v);
     }
 
-    let minValue = distance_vec.iter().min().unwrap();
+    let min = distance_vec
+        .iter()
+        .min_by(|&&v1, &&v2| v1.abs().partial_cmp(&v2.abs()).unwrap());
+
+    let closest_distance = *min.unwrap();
+
+    let distance_pos = distance_vec
+        .iter()
+        .position(|&x| x == closest_distance)
+        .unwrap();
+
+    let distance = *distance_vec.iter().nth(distance_pos).unwrap();
+
+    let angle = *angle_vec.iter().nth(distance_pos).unwrap();
+
+    let a_pos_x = *vec_x_a.iter().nth(distance_pos).unwrap();
+    let a_pos_y = *vec_y_a.iter().nth(distance_pos).unwrap();
+    let a_pos_z = *vec_z_a.iter().nth(distance_pos).unwrap();
+
+    let b_pos_x = *vec_x_b.iter().nth(distance_pos).unwrap();
+    let b_pos_y = *vec_y_b.iter().nth(distance_pos).unwrap();
+    let b_pos_z = *vec_z_b.iter().nth(distance_pos).unwrap();
+
+    let a_pos_v_x = *vec_x_v_a.iter().nth(distance_pos).unwrap();
+    let a_pos_v_y = *vec_y_v_a.iter().nth(distance_pos).unwrap();
+    let a_pos_v_z = *vec_z_v_a.iter().nth(distance_pos).unwrap();
+
+    let b_pos_v_x = *vec_x_v_b.iter().nth(distance_pos).unwrap();
+    let b_pos_v_y = *vec_y_v_b.iter().nth(distance_pos).unwrap();
+    let b_pos_v_z = *vec_z_v_b.iter().nth(distance_pos).unwrap();
+
+    return (
+        closest_distance,
+        distance,
+        angle,
+        a_pos_x,
+        a_pos_y,
+        a_pos_z,
+        b_pos_x,
+        b_pos_y,
+        b_pos_z,
+        a_pos_v_x,
+        a_pos_v_y,
+        a_pos_v_z,
+        b_pos_v_x,
+        b_pos_v_y,
+        b_pos_v_z,
+    );
 }
 
 fn euler_angle_transformations(
@@ -412,14 +477,36 @@ pub struct Canvas {
     new_base_z_y: f64,
     new_base_z_z: f64,
 
+    a: f64,
+    e: f64,
+    period: f64,
+
+    a_str: String,
+    e_str: String,
+    period_str: String,
+
+    pos_a_x: f64,
+    pos_a_y: f64,
+    pos_a_z: f64,
+    pos_b_x: f64,
+    pos_b_y: f64,
+    pos_b_z: f64,
+
+    pos_a_x_str: String,
+    pos_a_y_str: String,
+    pos_a_z_str: String,
+    pos_b_x_str: String,
+    pos_b_y_str: String,
+    pos_b_z_str: String,
+
     pass_mass: f64,
 
     pass_mass_str: String,
 
     general_toggle: bool,
     pos_vel_toggle: bool,
+    rel_pos_vel_toggle: bool,
     export_toggle: bool,
-    euler_angle_transformations_toggle: bool,
     passtrough_toggle: bool,
     results_toggle: bool,
 }
@@ -528,12 +615,12 @@ impl epi::App for Canvas {
 
             if ui
                 .add(egui::Button::new(format!(
-                    "Euler angle
-transformations"
+                    "Relative
+Pos & Vel"
                 )))
                 .clicked()
             {
-                self.euler_angle_transformations_toggle = !self.euler_angle_transformations_toggle
+                self.rel_pos_vel_toggle = !self.rel_pos_vel_toggle
             }
 
             if ui.add(egui::Button::new(format!("Passtrough"))).clicked() {
@@ -795,13 +882,124 @@ transformations"
                 });
             }
 
+            let rel_pos_vel_window = egui::Window::new("Relative position and velocity")
+                .auto_sized()
+                .collapsible(true)
+                .resizable(false);
+
+            if self.rel_pos_vel_toggle == true {
+                rel_pos_vel_window.show(ctx, |ui| {
+                    ui.vertical(|ui| {
+                        ui.add(egui::Label::new(format!("Orbital elements")).heading());
+
+                        ui.add(egui::Label::new(format!("Semi-major axis (a in km)")).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.a = self.a_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("{} km", self.a)).monospace());
+
+                        ui.label("");
+
+                        ui.add(egui::Label::new(format!("Eccentricity (e)")).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.e_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.e = self.e_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("{}", self.e)).monospace());
+
+                        ui.label("");
+
+                        ui.add(egui::Label::new(format!("Period (P in years)")).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.period_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.period = self.period_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("{} years", self.period)).monospace());
+
+                        ui.label(
+                            "
+                        ",
+                        );
+
+                        ui.add(egui::Label::new(format!("Old positions")).heading());
+
+                        ui.add(egui::Label::new(format!("A star position (km)")).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_a_x_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.pos_a_x = self.pos_a_x_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("x = {} km", self.pos_a_x)).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_a_y_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.pos_a_y = self.pos_a_y_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("y = {} km", self.pos_a_y)).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_a_z_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.pos_a_z = self.pos_a_z_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("z = {} km", self.pos_a_z)).monospace());
+
+                        ui.label(
+                            "
+                        ",
+                        );
+
+                        ui.add(egui::Label::new(format!("B star position (km)")).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_b_x_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.pos_b_x = self.pos_b_x_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("x = {} km", self.pos_b_x)).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_b_y_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.pos_b_y = self.pos_b_y_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("y = {} km", self.pos_b_y)).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_b_z_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.pos_b_z = self.pos_b_z_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("z = {} km", self.pos_b_z)).monospace());
+                    });
+                });
+            }
+
             let euler_angle_transformations_window =
                 egui::Window::new("Euler angle transformations")
                     .auto_sized()
                     .collapsible(true)
                     .resizable(false);
 
-            if self.euler_angle_transformations_toggle == true {
+            if self.rel_pos_vel_toggle == true {
                 euler_angle_transformations_window.show(ctx, |ui| {
                     ui.vertical(|ui| {
                         ui.add(egui::Label::new(format!("Angle values")).heading());
@@ -872,23 +1070,48 @@ transformations"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "{:?}",
+                                "x = {} km",
                                 position(
                                     self.distance_km.clone(),
                                     self.right_ascension.clone(),
                                     self.declination.clone()
                                 )
+                                .0
                             ))
                             .monospace(),
                         );
 
-                        ui.separator();
+                        ui.add(
+                            egui::Label::new(format!(
+                                "y = {} km",
+                                position(
+                                    self.distance_km.clone(),
+                                    self.right_ascension.clone(),
+                                    self.declination.clone()
+                                )
+                                .1
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "z = {} km",
+                                position(
+                                    self.distance_km.clone(),
+                                    self.right_ascension.clone(),
+                                    self.declination.clone()
+                                )
+                                .2
+                            ))
+                            .monospace(),
+                        );
 
                         ui.add(egui::Label::new(format!("Resulting velocity (km/s)")).heading());
 
                         ui.add(
                             egui::Label::new(format!(
-                                "{:?}",
+                                "x = {} km/s",
                                 velocity(
                                     self.distance_km.clone(),
                                     self.right_ascension.clone(),
@@ -900,38 +1123,437 @@ transformations"
                                     self.z.clone(),
                                     self.radial_velocity.clone(),
                                 )
+                                .0
                             ))
                             .monospace(),
                         );
 
-                        ui.separator();
+                        ui.add(
+                            egui::Label::new(format!(
+                                "y = {} km/s",
+                                velocity(
+                                    self.distance_km.clone(),
+                                    self.right_ascension.clone(),
+                                    self.declination.clone(),
+                                    self.proper_motion_ra.clone(),
+                                    self.proper_motion_dec.clone(),
+                                    self.x.clone(),
+                                    self.y.clone(),
+                                    self.z.clone(),
+                                    self.radial_velocity.clone(),
+                                )
+                                .1
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "z = {} km/s",
+                                velocity(
+                                    self.distance_km.clone(),
+                                    self.right_ascension.clone(),
+                                    self.declination.clone(),
+                                    self.proper_motion_ra.clone(),
+                                    self.proper_motion_dec.clone(),
+                                    self.x.clone(),
+                                    self.y.clone(),
+                                    self.z.clone(),
+                                    self.radial_velocity.clone(),
+                                )
+                                .2
+                            ))
+                            .monospace(),
+                        );
 
                         ui.add(egui::Label::new(format!("New base")).heading());
 
                         ui.add(
                             egui::Label::new(format!(
-                                "X-NEW: x({:?}), y({:?}), z({:?})",
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).0,
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).1,
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).2
+                                "X-NEW: x({}), y({}), z({})",
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .0,
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .1,
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .2
                             ))
                             .monospace(),
                         );
                         ui.add(
                             egui::Label::new(format!(
-                                "Y-NEW: x({:?}), y({:?}), z({:?})",
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).3,
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).4,
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).5
+                                "Y-NEW: x({}), y({}), z({})",
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .3,
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .4,
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .5
                             ))
                             .monospace(),
                         );
                         ui.add(
                             egui::Label::new(format!(
-                                "Z-NEW: x({:?}), y({:?}), z({:?})",
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).6,
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).7,
-                                euler_angle_transformations(self.lotn, self.aop, self.i,).8
+                                "Z-NEW: x({}), y({}), z({})",
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .6,
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .7,
+                                euler_angle_transformations(
+                                    self.lotn.clone(),
+                                    self.aop.clone(),
+                                    self.i.clone(),
+                                )
+                                .8
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!("Relative resulting position (km)")).heading(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Star A")).monospace());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "x = {} km",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .3
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "y = {} km",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .4
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "z = {} km",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .5
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Star B")).monospace());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "x = {} km",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .6
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "y = {} km",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .7
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "z = {} km",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .8
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!("Relative resulting velocity (km/s)"))
+                                .heading(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Star A")).monospace());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "x = {} km/s",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .9
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "y = {} km/s",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .10
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "z = {} km/s",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .11
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Star B")).monospace());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "x = {} km/s",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .12
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "y = {} km/s",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .13
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "z = {} km/s",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .14
                             ))
                             .monospace(),
                         );
