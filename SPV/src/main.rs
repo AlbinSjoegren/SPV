@@ -50,15 +50,16 @@ fn pos_vel_relative(
     for n in 0..360 {
         x = a * f64::from(n).to_radians().cos();
         y = b * f64::from(n).to_radians().sin();
-        let rel_x_old = pos_a_x - pos_b_x;
-        let rel_y = pos_a_y - pos_b_y;
-        let rel_z = pos_a_z - pos_b_z;
+        let rel_x_old = pos_b_x - pos_a_x;
+        let rel_y = pos_b_y - pos_a_y;
+        let rel_z = pos_b_z - pos_a_z;
         let rel_x = rel_x_old + (a * e);
         let new_rel_x = (new_base_x_x * rel_x) + (new_base_x_y * rel_y) + (new_base_x_z * rel_z);
         let new_rel_y = (new_base_y_x * rel_x) + (new_base_y_y * rel_y) + (new_base_y_z * rel_z);
+        let new_rel_z = (new_base_z_x * rel_x) + (new_base_z_y * rel_y) + (new_base_z_z * rel_z);
         let res_x = x - new_rel_x;
         let res_y = y - new_rel_y;
-        let res_z = 0.;
+        let res_z = new_rel_z;
         vec_x.push(res_x);
         vec_y.push(res_y);
         vec_z.push(res_z);
