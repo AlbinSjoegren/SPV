@@ -40,6 +40,7 @@ fn pos_vel_relative(
     let mut y = 0.;
     let mut x_t = 0.;
     let mut y_t = 0.;
+    let mut angle_vec = vec![];
     let mut vec_x = vec![];
     let mut vec_y = vec![];
     let mut vec_z = vec![];
@@ -47,7 +48,9 @@ fn pos_vel_relative(
     let mut vec_y_v = vec![];
     let mut vec_z_v = vec![];
 
-    for n in 0..360 {
+    for n in (0_i32..=360_i32).step_by(1) {
+        angle_vec.push(n);
+
         x = a * f64::from(n).to_radians().cos();
         y = b * f64::from(n).to_radians().sin();
         let rel_x_old = pos_b_x - pos_a_x;
@@ -66,11 +69,11 @@ fn pos_vel_relative(
 
         //Velocity of B
         x_t = ((0. - a) * f64::from(n).to_radians().sin())
-            / (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
+            * (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
                 + (b.powf(2.) * f64::from(n).to_radians().cos().powf(2.)))
             .sqrt());
         y_t = (b * f64::from(n).to_radians().cos())
-            / (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
+            * (((a.powf(2.) * f64::from(n).to_radians().sin().powf(2.))
                 + (b.powf(2.) * f64::from(n).to_radians().cos().powf(2.)))
             .sqrt());
         let mu = ((2. * std::f64::consts::PI) / period).powf(2.) * a.powf(3.);
