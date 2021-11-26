@@ -1396,7 +1396,7 @@ Pos & Vel"
                             .monospace(),
                         );
 
-                        ui.add(egui::Label::new(format!("Angle (m)")).heading());
+                        ui.add(egui::Label::new(format!("Angle (degrees)")).heading());
 
                         ui.add(
                             egui::Label::new(format!(
