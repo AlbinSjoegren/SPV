@@ -131,7 +131,7 @@ fn pos_vel_relative(
 
         //Velocity of B
         //Prep Values
-        let mu = (a_si.powf(3.)) / ((period_si / (2. * std::f64::consts::PI)).powf(2.));
+        let mu = (a_si.powf(3.) * 4. * std::f64::consts::PI.powf(2.)) / period_si.powf(2.);
         let p = a_si * (1. - e.powf(2.));
         let r = p / (1. + (e * f64::from(n).to_radians().cos()));
         let v = (((2. * mu) / r) - (mu / a_si)).sqrt();
