@@ -313,6 +313,21 @@ struct Export {
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
+    closest_distance: f64,
+    distance: f64,
+    angle: f64,
+    a_pos_x: f64,
+    a_pos_y: f64,
+    a_pos_z: f64,
+    b_pos_x: f64,
+    b_pos_y: f64,
+    b_pos_z: f64,
+    a_pos_v_x: f64,
+    a_pos_v_y: f64,
+    a_pos_v_z: f64,
+    b_pos_v_x: f64,
+    b_pos_v_y: f64,
+    b_pos_v_z: f64,
 }
 
 use serde_json;
@@ -338,6 +353,21 @@ fn export_json(
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
+    closest_distance: f64,
+    distance: f64,
+    angle: f64,
+    a_pos_x: f64,
+    a_pos_y: f64,
+    a_pos_z: f64,
+    b_pos_x: f64,
+    b_pos_y: f64,
+    b_pos_z: f64,
+    a_pos_v_x: f64,
+    a_pos_v_y: f64,
+    a_pos_v_z: f64,
+    b_pos_v_x: f64,
+    b_pos_v_y: f64,
+    b_pos_v_z: f64,
 ) {
     let data = Export {
         name: name_str,
@@ -357,6 +387,21 @@ fn export_json(
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
         mass: mass,
+        closest_distance: closest_distance,
+        distance: distance,
+        angle: angle,
+        a_pos_x: a_pos_x,
+        a_pos_y: a_pos_y,
+        a_pos_z: a_pos_z,
+        b_pos_x: b_pos_x,
+        b_pos_y: b_pos_y,
+        b_pos_z: b_pos_z,
+        a_pos_v_x: a_pos_v_x,
+        a_pos_v_y: a_pos_v_y,
+        a_pos_v_z: a_pos_v_z,
+        b_pos_v_x: b_pos_v_x,
+        b_pos_v_y: b_pos_v_y,
+        b_pos_v_z: b_pos_v_z,
     };
 
     // write out the file
@@ -383,6 +428,21 @@ fn export_txt(
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
+    closest_distance: f64,
+    distance: f64,
+    angle: f64,
+    a_pos_x: f64,
+    a_pos_y: f64,
+    a_pos_z: f64,
+    b_pos_x: f64,
+    b_pos_y: f64,
+    b_pos_z: f64,
+    a_pos_v_x: f64,
+    a_pos_v_y: f64,
+    a_pos_v_z: f64,
+    b_pos_v_x: f64,
+    b_pos_v_y: f64,
+    b_pos_v_z: f64,
 ) {
     let data = Export {
         name: name_str,
@@ -402,6 +462,21 @@ fn export_txt(
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
         mass: mass,
+        closest_distance: closest_distance,
+        distance: distance,
+        angle: angle,
+        a_pos_x: a_pos_x,
+        a_pos_y: a_pos_y,
+        a_pos_z: a_pos_z,
+        b_pos_x: b_pos_x,
+        b_pos_y: b_pos_y,
+        b_pos_z: b_pos_z,
+        a_pos_v_x: a_pos_v_x,
+        a_pos_v_y: a_pos_v_y,
+        a_pos_v_z: a_pos_v_z,
+        b_pos_v_x: b_pos_v_x,
+        b_pos_v_y: b_pos_v_y,
+        b_pos_v_z: b_pos_v_z,
     };
 
     let mut buffer = File::create("data.txt").unwrap();
@@ -502,6 +577,22 @@ pub struct Canvas {
     pass_mass: f64,
 
     pass_mass_str: String,
+
+    closest_distance: f64,
+    distance_b_b: f64,
+    angle: f64,
+    a_pos_x: f64,
+    a_pos_y: f64,
+    a_pos_z: f64,
+    b_pos_x: f64,
+    b_pos_y: f64,
+    b_pos_z: f64,
+    a_pos_v_x: f64,
+    a_pos_v_y: f64,
+    a_pos_v_z: f64,
+    b_pos_v_x: f64,
+    b_pos_v_y: f64,
+    b_pos_v_z: f64,
 
     general_toggle: bool,
     pos_vel_toggle: bool,
@@ -1242,6 +1333,88 @@ Pos & Vel"
                         );
 
                         ui.add(
+                            egui::Label::new(format!("Distance from new B to olf B (km)"))
+                                .heading(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "v = {} degrees",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .0
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "v = {} degrees",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .1
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Angle (degrees)")).heading());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "v = {} degrees",
+                                pos_vel_relative(
+                                    self.a.clone(),
+                                    self.e.clone(),
+                                    self.period.clone(),
+                                    self.pos_a_x.clone(),
+                                    self.pos_a_y.clone(),
+                                    self.pos_a_z.clone(),
+                                    self.pos_b_x.clone(),
+                                    self.pos_b_y.clone(),
+                                    self.pos_b_z.clone(),
+                                    self.new_base_x_x.clone(),
+                                    self.new_base_x_y.clone(),
+                                    self.new_base_x_z.clone(),
+                                    self.new_base_y_x.clone(),
+                                    self.new_base_y_y.clone(),
+                                    self.new_base_y_z.clone(),
+                                )
+                                .2
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
                             egui::Label::new(format!("Relative resulting position (km)")).heading(),
                         );
 
@@ -1558,6 +1731,277 @@ Pos & Vel"
                             .monospace(),
                         );
 
+                        self.closest_distance = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .0;
+                        self.distance_b_b = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .1;
+                        self.angle = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .2;
+                        self.a_pos_x = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .3;
+                        self.a_pos_y = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .4;
+                        self.a_pos_z = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .5;
+                        self.b_pos_x = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .6;
+                        self.b_pos_y = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .7;
+                        self.b_pos_z = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .8;
+                        self.a_pos_v_x = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .9;
+                        self.a_pos_v_y = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .10;
+                        self.a_pos_v_z = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .11;
+                        self.b_pos_v_x = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .12;
+                        self.b_pos_v_y = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .13;
+                        self.b_pos_v_z = pos_vel_relative(
+                            self.a.clone(),
+                            self.e.clone(),
+                            self.period.clone(),
+                            self.pos_a_x.clone(),
+                            self.pos_a_y.clone(),
+                            self.pos_a_z.clone(),
+                            self.pos_b_x.clone(),
+                            self.pos_b_y.clone(),
+                            self.pos_b_z.clone(),
+                            self.new_base_x_x.clone(),
+                            self.new_base_x_y.clone(),
+                            self.new_base_x_z.clone(),
+                            self.new_base_y_x.clone(),
+                            self.new_base_y_y.clone(),
+                            self.new_base_y_z.clone(),
+                        )
+                        .14;
+
                         self.x = position(
                             self.distance_km.clone(),
                             self.right_ascension.clone(),
@@ -1670,6 +2114,21 @@ Pos & Vel"
                                     self.new_base_z_y,
                                     self.new_base_z_z,
                                     self.pass_mass,
+                                    self.closest_distance,
+                                    self.distance_b_b,
+                                    self.angle,
+                                    self.a_pos_x,
+                                    self.a_pos_y,
+                                    self.a_pos_z,
+                                    self.b_pos_x,
+                                    self.b_pos_y,
+                                    self.b_pos_z,
+                                    self.a_pos_v_x,
+                                    self.a_pos_v_y,
+                                    self.a_pos_v_z,
+                                    self.b_pos_v_x,
+                                    self.b_pos_v_y,
+                                    self.b_pos_v_z,
                                 );
                             }
 
@@ -1692,6 +2151,21 @@ Pos & Vel"
                                     self.new_base_z_y,
                                     self.new_base_z_z,
                                     self.pass_mass,
+                                    self.closest_distance,
+                                    self.distance_b_b,
+                                    self.angle,
+                                    self.a_pos_x,
+                                    self.a_pos_y,
+                                    self.a_pos_z,
+                                    self.b_pos_x,
+                                    self.b_pos_y,
+                                    self.b_pos_z,
+                                    self.a_pos_v_x,
+                                    self.a_pos_v_y,
+                                    self.a_pos_v_z,
+                                    self.b_pos_v_x,
+                                    self.b_pos_v_y,
+                                    self.b_pos_v_z,
                                 );
                             }
                         });
