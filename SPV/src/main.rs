@@ -62,10 +62,6 @@ fn pos_vel_relative(
     let mut vec_y_v_a = vec![];
     let mut vec_z_v_a = vec![];
 
-    let mut vec_x_v_b = vec![];
-    let mut vec_y_v_b = vec![];
-    let mut vec_z_v_b = vec![];
-
     let mut distance_vec = vec![];
 
     for n in (0_i32..=360_i32).step_by(1) {
@@ -90,8 +86,7 @@ fn pos_vel_relative(
         let y = b_si * f64::from(n).to_radians().sin();
 
         //Get non relative position of B in original base
-        let rel_x_old = pos_b_x_si - pos_a_x_si;
-        let rel_x = rel_x_old + (a_si * e);
+        let rel_x = pos_b_x_si - pos_a_x_si;
         let rel_y = pos_b_y_si - pos_a_y_si;
         let rel_z = pos_b_z_si - pos_a_z_si;
 
@@ -116,40 +111,13 @@ fn pos_vel_relative(
         //Pushing to vector
         distance_vec.push(distance);
 
-        //Position of A in original base
-        let x_a = a_si * e;
-        let y_a = 0.;
-        let z_a = 0.;
-
         //Pushing to vector
-        vec_x_a.push(x_a);
-        vec_y_a.push(y_a);
-        vec_z_a.push(z_a);
+        vec_x_a.push(0.);
+        vec_y_a.push(0.);
+        vec_z_a.push(0.);
         vec_x_v_a.push(0.);
         vec_y_v_a.push(0.);
         vec_z_v_a.push(0.);
-
-        //Velocity of B
-        //Prep Values
-        let mu = (a_si.powf(3.) * 4. * std::f64::consts::PI.powf(2.)) / period_si.powf(2.);
-        let p = a_si * (1. - e.powf(2.));
-        let r = p / (1. + (e * f64::from(n).to_radians().cos()));
-        let v = (((2. * mu) / r) - (mu / a_si)).sqrt();
-        let cos_theta = ((mu * p).sqrt()) / (v * r);
-
-        //Velocity in new base
-        let x_v = v * cos_theta;
-        let y_v = v * cos_theta.acos().sin();
-
-        //Velocity in original base
-        let res_x_v = (new_base_x_x * x_v) + (new_base_y_x * y_v);
-        let res_y_v = (new_base_x_y * x_v) + (new_base_y_y * y_v);
-        let res_z_v = (new_base_x_z * x_v) + (new_base_y_z * y_v);
-
-        //Pushing to vector
-        vec_x_v_b.push(res_x_v);
-        vec_y_v_b.push(res_y_v);
-        vec_z_v_b.push(res_z_v);
     }
 
     let min = distance_vec
@@ -175,13 +143,33 @@ fn pos_vel_relative(
     let b_pos_y = *vec_y_b.iter().nth(distance_pos).unwrap();
     let b_pos_z = *vec_z_b.iter().nth(distance_pos).unwrap();
 
+    //SI units (meters and seconds)
+    let period_si = period / 31557600.;
+    let a_si = a * 1000.;
+
+    //Defining the semi minor axis
+    let b_si = a_si * (1. - e.powf(2.)).sqrt();
+
+    //Velocity of B
+    //Prep Values
+    let mu = (a_si.powf(3.) * 4. * std::f64::consts::PI.powf(2.)) / period_si.powf(2.);
+    let p = b_si.powf(2.) / a_si;
+    //let r = (b_pos_x.powf(2.) + b_pos_y.powf(2.) + b_pos_z.powf(2.)).sqrt();
+    //let v = (((2. * mu) / r) - (mu / a_si)).sqrt();
+    //let cos_theta = ((mu * p).sqrt()) / (v * r);
+
+    //Velocity in new base
+    let x_v = (0. - (mu / p).sqrt()) * angle.to_radians().sin();
+    let y_v = ((mu / p).sqrt()) * (e + angle.to_radians().cos());
+
+    //Velocity in original base
+    let b_pos_v_x = (new_base_x_x * x_v) + (new_base_y_x * y_v);
+    let b_pos_v_y = (new_base_x_y * x_v) + (new_base_y_y * y_v);
+    let b_pos_v_z = (new_base_x_z * x_v) + (new_base_y_z * y_v);
+
     let a_pos_v_x = *vec_x_v_a.iter().nth(distance_pos).unwrap();
     let a_pos_v_y = *vec_y_v_a.iter().nth(distance_pos).unwrap();
     let a_pos_v_z = *vec_z_v_a.iter().nth(distance_pos).unwrap();
-
-    let b_pos_v_x = *vec_x_v_b.iter().nth(distance_pos).unwrap();
-    let b_pos_v_y = *vec_y_v_b.iter().nth(distance_pos).unwrap();
-    let b_pos_v_z = *vec_z_v_b.iter().nth(distance_pos).unwrap();
 
     return (
         closest_distance,
