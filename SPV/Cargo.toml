@@ -1,6 +1,6 @@
 [package]
 name = "spv"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
 description = "Calculates a stars position and velocity in the cartesian coordinate system."
