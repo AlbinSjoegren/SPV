@@ -4,6 +4,27 @@ Calculates a stars position and velocity in the cartesian coordinate system.
 
 ![Screenshot_20211126_083316](https://user-images.githubusercontent.com/23136737/143543714-eb5da49c-f0c5-431c-a350-746d5c4eba22.png)
 
+## Building and running
+
+To build SPV you need rust, you can install it with [these instructions](https://www.rust-lang.org/learn/get-started).
+
+Then simply run:
+
+```
+cargo run --release
+```
+in the directory with the `src` directory and `Cargo.toml` in it.
+
+I _HIGHLY_ recommend you build from the latest created tag an not the main branch.
+
+If you don't want to build it, then you can download the program from the _Releases_ panel.
+
+On Linux simply give the AppImage executable rights (properties of the file if you right click on it) and double click it in your file manager. You could also run it as a script with `./filename.AppImage` in the terminal.
+
+On Windows simply download the `.exe` and double click to run it.
+
+The data.txt and data.json files will _ALLWAYS_ be in the same directory as the actual `.exe` or `.Appimage` file.
+
 ## Todo
 
 1. Expand the number of available operation
