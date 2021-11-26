@@ -2,7 +2,7 @@
 
 Calculates a stars position and velocity in the cartesian coordinate system.
 
-![Screenshot_20211126_083316](https://user-images.githubusercontent.com/23136737/143543714-eb5da49c-f0c5-431c-a350-746d5c4eba22.png)
+![Screenshot_20211126_212905](https://user-images.githubusercontent.com/23136737/143627341-dd6598b4-4dde-4d64-98db-f3c59813a4be.png)
 
 ## Building and running
 
@@ -23,7 +23,7 @@ On Linux simply give the AppImage executable rights (properties of the file if y
 
 On Windows simply download the `.exe` and double click to run it.
 
-The data.txt and data.json files will _ALLWAYS_ be in the same directory as the actual `.exe` or `.Appimage` file.
+The data will _ALLWAYS_ be in directories based on the name given under _General_. These directories will _ALLWAYS_ be in the same directory as the actual `.exe` or `.Appimage` file.
 
 ## Todo
 
