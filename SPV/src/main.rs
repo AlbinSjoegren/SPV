@@ -31,42 +31,17 @@ fn pos_vel_relative(
     new_base_y_x: f64,
     new_base_y_y: f64,
     new_base_y_z: f64,
-) -> (
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-    f64,
-) {
+) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
     let mut angle_vec = vec![];
-
-    let mut vec_x_a = vec![];
-    let mut vec_y_a = vec![];
-    let mut vec_z_a = vec![];
 
     let mut vec_x_b = vec![];
     let mut vec_y_b = vec![];
     let mut vec_z_b = vec![];
 
-    let mut vec_x_v_a = vec![];
-    let mut vec_y_v_a = vec![];
-    let mut vec_z_v_a = vec![];
-
     let mut distance_vec = vec![];
 
     for n in (0_i32..=360_i32).step_by(1) {
         //SI units (meters and seconds)
-        let period_si = period / 31557600.;
         let a_si = a * 1000.;
         let pos_a_x_si = pos_a_x * 1000.;
         let pos_a_y_si = pos_a_y * 1000.;
@@ -110,14 +85,6 @@ fn pos_vel_relative(
 
         //Pushing to vector
         distance_vec.push(distance);
-
-        //Pushing to vector
-        vec_x_a.push(0.);
-        vec_y_a.push(0.);
-        vec_z_a.push(0.);
-        vec_x_v_a.push(0.);
-        vec_y_v_a.push(0.);
-        vec_z_v_a.push(0.);
     }
 
     let min = distance_vec
@@ -135,16 +102,12 @@ fn pos_vel_relative(
 
     let angle = *angle_vec.iter().nth(distance_pos).unwrap();
 
-    let a_pos_x = *vec_x_a.iter().nth(distance_pos).unwrap();
-    let a_pos_y = *vec_y_a.iter().nth(distance_pos).unwrap();
-    let a_pos_z = *vec_z_a.iter().nth(distance_pos).unwrap();
-
     let b_pos_x = *vec_x_b.iter().nth(distance_pos).unwrap();
     let b_pos_y = *vec_y_b.iter().nth(distance_pos).unwrap();
     let b_pos_z = *vec_z_b.iter().nth(distance_pos).unwrap();
 
     //SI units (meters and seconds)
-    let period_si = period / 31557600.;
+    let period_si = period * 31557600.;
     let a_si = a * 1000.;
 
     //Defining the semi minor axis
@@ -154,39 +117,18 @@ fn pos_vel_relative(
     //Prep Values
     let mu = (a_si.powf(3.) * 4. * std::f64::consts::PI.powf(2.)) / period_si.powf(2.);
     let p = b_si.powf(2.) / a_si;
-    //let r = (b_pos_x.powf(2.) + b_pos_y.powf(2.) + b_pos_z.powf(2.)).sqrt();
-    //let v = (((2. * mu) / r) - (mu / a_si)).sqrt();
-    //let cos_theta = ((mu * p).sqrt()) / (v * r);
 
     //Velocity in new base
     let x_v = (0. - (mu / p).sqrt()) * angle.to_radians().sin();
     let y_v = ((mu / p).sqrt()) * (e + angle.to_radians().cos());
 
     //Velocity in original base
-    let b_pos_v_x = (new_base_x_x * x_v) + (new_base_y_x * y_v);
-    let b_pos_v_y = (new_base_x_y * x_v) + (new_base_y_y * y_v);
-    let b_pos_v_z = (new_base_x_z * x_v) + (new_base_y_z * y_v);
-
-    let a_pos_v_x = *vec_x_v_a.iter().nth(distance_pos).unwrap();
-    let a_pos_v_y = *vec_y_v_a.iter().nth(distance_pos).unwrap();
-    let a_pos_v_z = *vec_z_v_a.iter().nth(distance_pos).unwrap();
+    let b_vel_x = (new_base_x_x * x_v) + (new_base_y_x * y_v);
+    let b_vel_y = (new_base_x_y * x_v) + (new_base_y_y * y_v);
+    let b_vel_z = (new_base_x_z * x_v) + (new_base_y_z * y_v);
 
     return (
-        closest_distance,
-        distance,
-        angle,
-        a_pos_x,
-        a_pos_y,
-        a_pos_z,
-        b_pos_x,
-        b_pos_y,
-        b_pos_z,
-        a_pos_v_x,
-        a_pos_v_y,
-        a_pos_v_z,
-        b_pos_v_x,
-        b_pos_v_y,
-        b_pos_v_z,
+        distance, angle, b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
     );
 }
 
@@ -291,8 +233,8 @@ fn velocity(
 use egui::{FontDefinitions, FontFamily};
 use serde::{Deserialize, Serialize};
 
+/*
 #[derive(Serialize, Deserialize, Debug)]
-
 struct Export {
     name: String,
     x_pos: f64,
@@ -311,21 +253,60 @@ struct Export {
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
-    closest_distance: f64,
     distance: f64,
     angle: f64,
-    a_pos_x: f64,
-    a_pos_y: f64,
-    a_pos_z: f64,
     b_pos_x: f64,
     b_pos_y: f64,
     b_pos_z: f64,
-    a_pos_v_x: f64,
-    a_pos_v_y: f64,
-    a_pos_v_z: f64,
-    b_pos_v_x: f64,
-    b_pos_v_y: f64,
-    b_pos_v_z: f64,
+    b_vel_x: f64,
+    b_vel_y: f64,
+    b_vel_z: f64,
+}
+*/
+#[derive(Serialize, Deserialize, Debug)]
+struct ExportPos {
+    x: f64,
+    y: f64,
+    z: f64,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct ExportVel {
+    x: f64,
+    y: f64,
+    z: f64,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct ExportBase {
+    x_x: f64,
+    x_y: f64,
+    x_z: f64,
+    y_x: f64,
+    y_y: f64,
+    y_z: f64,
+    z_x: f64,
+    z_y: f64,
+    z_z: f64,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct ExportPass {
+    mass: f64,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct ExportRelPos {
+    x: f64,
+    y: f64,
+    z: f64,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct ExportRelVel {
+    x: f64,
+    y: f64,
+    z: f64,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct ExportRelDebug {
+    distance: f64,
+    angle: f64,
 }
 
 use serde_json;
@@ -351,22 +332,16 @@ fn export_json(
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
-    closest_distance: f64,
     distance: f64,
     angle: f64,
-    a_pos_x: f64,
-    a_pos_y: f64,
-    a_pos_z: f64,
     b_pos_x: f64,
     b_pos_y: f64,
     b_pos_z: f64,
-    a_pos_v_x: f64,
-    a_pos_v_y: f64,
-    a_pos_v_z: f64,
-    b_pos_v_x: f64,
-    b_pos_v_y: f64,
-    b_pos_v_z: f64,
+    b_vel_x: f64,
+    b_vel_y: f64,
+    b_vel_z: f64,
 ) {
+    /*
     let data = Export {
         name: name_str,
         x_pos: x,
@@ -385,27 +360,120 @@ fn export_json(
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
         mass: mass,
-        closest_distance: closest_distance,
         distance: distance,
         angle: angle,
-        a_pos_x: a_pos_x,
-        a_pos_y: a_pos_y,
-        a_pos_z: a_pos_z,
         b_pos_x: b_pos_x,
         b_pos_y: b_pos_y,
         b_pos_z: b_pos_z,
-        a_pos_v_x: a_pos_v_x,
-        a_pos_v_y: a_pos_v_y,
-        a_pos_v_z: a_pos_v_z,
-        b_pos_v_x: b_pos_v_x,
-        b_pos_v_y: b_pos_v_y,
-        b_pos_v_z: b_pos_v_z,
+        b_vel_x: b_vel_x,
+        b_vel_y: b_vel_y,
+        b_vel_z: b_vel_z,
+    };
+    */
+    let pos_data = ExportPos { x: x, y: y, z: z };
+    let vel_data = ExportVel {
+        x: x_v,
+        y: y_v,
+        z: z_v,
+    };
+    let base_data = ExportBase {
+        x_x: new_base_x_x,
+        x_y: new_base_x_y,
+        x_z: new_base_x_z,
+        y_x: new_base_y_x,
+        y_y: new_base_y_y,
+        y_z: new_base_y_z,
+        z_x: new_base_z_x,
+        z_y: new_base_z_y,
+        z_z: new_base_z_z,
+    };
+    let pass_data = ExportPass { mass: mass };
+    let rel_pos_data = ExportRelPos {
+        x: b_pos_x,
+        y: b_pos_y,
+        z: b_pos_z,
+    };
+    let rel_vel_data = ExportRelVel {
+        x: b_vel_x,
+        y: b_vel_y,
+        z: b_vel_z,
+    };
+    let rel_debug_data = ExportRelDebug {
+        distance: distance,
+        angle: angle,
     };
 
-    // write out the file
-    let writer = BufWriter::new(File::create("data.json").unwrap());
+    let mut path = std::path::PathBuf::from("./");
+    path.push(name_str.clone().replace(" ", "_") + "_json");
+    if std::path::Path::new(path.as_path()).is_dir() == false {
+        std::fs::create_dir("./".to_string() + &name_str.clone().replace(" ", "_") + "_json")
+            .expect("dir fail");
+    }
 
-    serde_json::to_writer_pretty(writer, &data).unwrap();
+    let mut file_path_pos = std::path::PathBuf::from("./");
+
+    file_path_pos.push(name_str.clone().replace(" ", "_") + "_json");
+    file_path_pos.push("position_kilometers");
+
+    file_path_pos.set_extension("json");
+
+    let mut file_path_vel = std::path::PathBuf::from("./");
+
+    file_path_vel.push(name_str.clone().replace(" ", "_") + "_json");
+    file_path_vel.push("velocity_in_kilometers_per_second");
+
+    file_path_vel.set_extension("json");
+
+    let mut file_path_base = std::path::PathBuf::from("./");
+
+    file_path_base.push(name_str.clone().replace(" ", "_") + "_json");
+    file_path_base.push("base_in_NAN");
+
+    file_path_base.set_extension("json");
+
+    let mut file_path_pass = std::path::PathBuf::from("./");
+
+    file_path_pass.push(name_str.clone().replace(" ", "_") + "_json");
+    file_path_pass.push("passtrough_in_unknown");
+
+    file_path_pass.set_extension("json");
+
+    let mut file_path_rel_pos = std::path::PathBuf::from("./");
+
+    file_path_rel_pos.push(name_str.clone().replace(" ", "_") + "_json");
+    file_path_rel_pos.push("relative_position_in_meters");
+
+    file_path_rel_pos.set_extension("json");
+
+    let mut file_path_rel_vel = std::path::PathBuf::from("./");
+
+    file_path_rel_vel.push(name_str.clone().replace(" ", "_") + "_json");
+    file_path_rel_vel.push("relative_velocity_in_meters_per_second");
+
+    file_path_rel_vel.set_extension("json");
+
+    let mut file_path_rel_debug = std::path::PathBuf::from("./");
+
+    file_path_rel_debug.push(name_str.clone().replace(" ", "_") + "_json");
+    file_path_rel_debug.push("relative_debug_in_unknown");
+
+    file_path_rel_debug.set_extension("json");
+
+    let writer_pos = BufWriter::new(File::create(file_path_pos).expect("path invalid"));
+    let writer_vel = BufWriter::new(File::create(file_path_vel).expect("path invalid"));
+    let writer_base = BufWriter::new(File::create(file_path_base).expect("path invalid"));
+    let writer_pass = BufWriter::new(File::create(file_path_pass).expect("path invalid"));
+    let writer_rel_pos = BufWriter::new(File::create(file_path_rel_pos).expect("path invalid"));
+    let writer_rel_vel = BufWriter::new(File::create(file_path_rel_vel).expect("path invalid"));
+    let writer_rel_debug = BufWriter::new(File::create(file_path_rel_debug).expect("path invalid"));
+
+    serde_json::to_writer_pretty(writer_pos, &pos_data).unwrap();
+    serde_json::to_writer_pretty(writer_vel, &vel_data).unwrap();
+    serde_json::to_writer_pretty(writer_base, &base_data).unwrap();
+    serde_json::to_writer_pretty(writer_pass, &pass_data).unwrap();
+    serde_json::to_writer_pretty(writer_rel_pos, &rel_pos_data).unwrap();
+    serde_json::to_writer_pretty(writer_rel_vel, &rel_vel_data).unwrap();
+    serde_json::to_writer_pretty(writer_rel_debug, &rel_debug_data).unwrap();
 }
 
 fn export_txt(
@@ -426,22 +494,16 @@ fn export_txt(
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
-    closest_distance: f64,
     distance: f64,
     angle: f64,
-    a_pos_x: f64,
-    a_pos_y: f64,
-    a_pos_z: f64,
     b_pos_x: f64,
     b_pos_y: f64,
     b_pos_z: f64,
-    a_pos_v_x: f64,
-    a_pos_v_y: f64,
-    a_pos_v_z: f64,
-    b_pos_v_x: f64,
-    b_pos_v_y: f64,
-    b_pos_v_z: f64,
+    b_vel_x: f64,
+    b_vel_y: f64,
+    b_vel_z: f64,
 ) {
+    /*
     let data = Export {
         name: name_str,
         x_pos: x,
@@ -460,27 +522,133 @@ fn export_txt(
         new_base_z_y: new_base_z_y,
         new_base_z_z: new_base_z_z,
         mass: mass,
-        closest_distance: closest_distance,
         distance: distance,
         angle: angle,
-        a_pos_x: a_pos_x,
-        a_pos_y: a_pos_y,
-        a_pos_z: a_pos_z,
         b_pos_x: b_pos_x,
         b_pos_y: b_pos_y,
         b_pos_z: b_pos_z,
-        a_pos_v_x: a_pos_v_x,
-        a_pos_v_y: a_pos_v_y,
-        a_pos_v_z: a_pos_v_z,
-        b_pos_v_x: b_pos_v_x,
-        b_pos_v_y: b_pos_v_y,
-        b_pos_v_z: b_pos_v_z,
+        b_vel_x: b_vel_x,
+        b_vel_y: b_vel_y,
+        b_vel_z: b_vel_z,
+    };
+    */
+    let pos_data = ExportPos { x: x, y: y, z: z };
+    let vel_data = ExportVel {
+        x: x_v,
+        y: y_v,
+        z: z_v,
+    };
+    let base_data = ExportBase {
+        x_x: new_base_x_x,
+        x_y: new_base_x_y,
+        x_z: new_base_x_z,
+        y_x: new_base_y_x,
+        y_y: new_base_y_y,
+        y_z: new_base_y_z,
+        z_x: new_base_z_x,
+        z_y: new_base_z_y,
+        z_z: new_base_z_z,
+    };
+    let pass_data = ExportPass { mass: mass };
+    let rel_pos_data = ExportRelPos {
+        x: b_pos_x,
+        y: b_pos_y,
+        z: b_pos_z,
+    };
+    let rel_vel_data = ExportRelVel {
+        x: b_vel_x,
+        y: b_vel_y,
+        z: b_vel_z,
+    };
+    let rel_debug_data = ExportRelDebug {
+        distance: distance,
+        angle: angle,
     };
 
-    let mut buffer = File::create("data.txt").unwrap();
+    let mut path = std::path::PathBuf::from("./");
+    path.push(name_str.clone().replace(" ", "_") + "_txt");
+    if std::path::Path::new(path.as_path()).is_dir() == false {
+        std::fs::create_dir("./".to_string() + &name_str.clone().replace(" ", "_") + "_txt")
+            .expect("dir fail");
+    }
 
-    buffer
-        .write_all(serde_json::to_string(&data).unwrap().as_bytes())
+    let mut file_path_pos = std::path::PathBuf::from("./");
+
+    file_path_pos.push(name_str.clone().replace(" ", "_") + "_txt");
+    file_path_pos.push("position_kilometers");
+
+    file_path_pos.set_extension("txt");
+
+    let mut file_path_vel = std::path::PathBuf::from("./");
+
+    file_path_vel.push(name_str.clone().replace(" ", "_") + "_txt");
+    file_path_vel.push("velocity_in_kilometers_per_second");
+
+    file_path_vel.set_extension("txt");
+
+    let mut file_path_base = std::path::PathBuf::from("./");
+
+    file_path_base.push(name_str.clone().replace(" ", "_") + "_txt");
+    file_path_base.push("base_in_NAN");
+
+    file_path_base.set_extension("txt");
+
+    let mut file_path_pass = std::path::PathBuf::from("./");
+
+    file_path_pass.push(name_str.clone().replace(" ", "_") + "_txt");
+    file_path_pass.push("passtrough_in_unknown");
+
+    file_path_pass.set_extension("txt");
+
+    let mut file_path_rel_pos = std::path::PathBuf::from("./");
+
+    file_path_rel_pos.push(name_str.clone().replace(" ", "_") + "_txt");
+    file_path_rel_pos.push("relative_position_in_meters");
+
+    file_path_rel_pos.set_extension("txt");
+
+    let mut file_path_rel_vel = std::path::PathBuf::from("./");
+
+    file_path_rel_vel.push(name_str.clone().replace(" ", "_") + "_txt");
+    file_path_rel_vel.push("relative_velocity_in_meters_per_second");
+
+    file_path_rel_vel.set_extension("txt");
+
+    let mut file_path_rel_debug = std::path::PathBuf::from("./");
+
+    file_path_rel_debug.push(name_str.clone().replace(" ", "_") + "_txt");
+    file_path_rel_debug.push("relative_debug_in_unknown");
+
+    file_path_rel_debug.set_extension("txt");
+
+    let mut buffer_pos = File::create(file_path_pos).expect("path invalid");
+    let mut buffer_vel = File::create(file_path_vel).expect("path invalid");
+    let mut buffer_base = File::create(file_path_base).expect("path invalid");
+    let mut buffer_pass = File::create(file_path_pass).expect("path invalid");
+    let mut buffer_rel_pos = File::create(file_path_rel_pos).expect("path invalid");
+    let mut buffer_rel_vel = File::create(file_path_rel_vel).expect("path invalid");
+    let mut buffer_rel_debug = File::create(file_path_rel_debug).expect("path invalid");
+
+    buffer_pos
+        .write_all(serde_json::to_string(&pos_data).unwrap().as_bytes())
+        .unwrap();
+    buffer_vel
+        .write_all(serde_json::to_string(&vel_data).unwrap().as_bytes())
+        .unwrap();
+    buffer_base
+        .write_all(serde_json::to_string(&base_data).unwrap().as_bytes())
+        .unwrap();
+    buffer_pass
+        .write_all(serde_json::to_string(&pass_data).unwrap().as_bytes())
+        .unwrap();
+    buffer_rel_pos
+        .write_all(serde_json::to_string(&rel_pos_data).unwrap().as_bytes())
+        .unwrap();
+    buffer_rel_vel
+        .write_all(serde_json::to_string(&rel_vel_data).unwrap().as_bytes())
+        .unwrap();
+    buffer_rel_debug
+        .write_all(serde_json::to_string(&rel_debug_data).unwrap().as_bytes())
         .unwrap();
 }
 
@@ -576,21 +744,14 @@ pub struct Canvas {
 
     pass_mass_str: String,
 
-    closest_distance: f64,
-    distance_b_b: f64,
+    distance_btob: f64,
     angle: f64,
-    a_pos_x: f64,
-    a_pos_y: f64,
-    a_pos_z: f64,
     b_pos_x: f64,
     b_pos_y: f64,
     b_pos_z: f64,
-    a_pos_v_x: f64,
-    a_pos_v_y: f64,
-    a_pos_v_z: f64,
-    b_pos_v_x: f64,
-    b_pos_v_y: f64,
-    b_pos_v_z: f64,
+    b_vel_x: f64,
+    b_vel_y: f64,
+    b_vel_z: f64,
 
     general_toggle: bool,
     pos_vel_toggle: bool,
@@ -1155,580 +1316,7 @@ Pos & Vel"
             if self.results_toggle == true {
                 ui.vertical(|_ui| {
                     results_window.show(ctx, |ui| {
-                        ui.add(egui::Label::new(format!("Resulting position (km)")).heading());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "x = {} km",
-                                position(
-                                    self.distance_km.clone(),
-                                    self.right_ascension.clone(),
-                                    self.declination.clone()
-                                )
-                                .0
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "y = {} km",
-                                position(
-                                    self.distance_km.clone(),
-                                    self.right_ascension.clone(),
-                                    self.declination.clone()
-                                )
-                                .1
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "z = {} km",
-                                position(
-                                    self.distance_km.clone(),
-                                    self.right_ascension.clone(),
-                                    self.declination.clone()
-                                )
-                                .2
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(egui::Label::new(format!("Resulting velocity (km/s)")).heading());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "x = {} km/s",
-                                velocity(
-                                    self.distance_km.clone(),
-                                    self.right_ascension.clone(),
-                                    self.declination.clone(),
-                                    self.proper_motion_ra.clone(),
-                                    self.proper_motion_dec.clone(),
-                                    self.x.clone(),
-                                    self.y.clone(),
-                                    self.z.clone(),
-                                    self.radial_velocity.clone(),
-                                )
-                                .0
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "y = {} km/s",
-                                velocity(
-                                    self.distance_km.clone(),
-                                    self.right_ascension.clone(),
-                                    self.declination.clone(),
-                                    self.proper_motion_ra.clone(),
-                                    self.proper_motion_dec.clone(),
-                                    self.x.clone(),
-                                    self.y.clone(),
-                                    self.z.clone(),
-                                    self.radial_velocity.clone(),
-                                )
-                                .1
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "z = {} km/s",
-                                velocity(
-                                    self.distance_km.clone(),
-                                    self.right_ascension.clone(),
-                                    self.declination.clone(),
-                                    self.proper_motion_ra.clone(),
-                                    self.proper_motion_dec.clone(),
-                                    self.x.clone(),
-                                    self.y.clone(),
-                                    self.z.clone(),
-                                    self.radial_velocity.clone(),
-                                )
-                                .2
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(egui::Label::new(format!("New base")).heading());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "X-NEW: x({}), y({}), z({})",
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .0,
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .1,
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .2
-                            ))
-                            .monospace(),
-                        );
-                        ui.add(
-                            egui::Label::new(format!(
-                                "Y-NEW: x({}), y({}), z({})",
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .3,
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .4,
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .5
-                            ))
-                            .monospace(),
-                        );
-                        ui.add(
-                            egui::Label::new(format!(
-                                "Z-NEW: x({}), y({}), z({})",
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .6,
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .7,
-                                euler_angle_transformations(
-                                    self.lotn.clone(),
-                                    self.aop.clone(),
-                                    self.i.clone(),
-                                )
-                                .8
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!("Distance from new B to olf B (m)")).heading(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "v = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .0
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "v = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .1
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(egui::Label::new(format!("Angle (degrees)")).heading());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "v = {} degrees",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .2
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!("Relative resulting position (m)")).heading(),
-                        );
-
-                        ui.add(egui::Label::new(format!("Star A")).monospace());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "x = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .3
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "y = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .4
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "z = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .5
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(egui::Label::new(format!("Star B")).monospace());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "x = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .6
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "y = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .7
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "z = {} m",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .8
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!("Relative resulting velocity (m/s)"))
-                                .heading(),
-                        );
-
-                        ui.add(egui::Label::new(format!("Star A")).monospace());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "x = {} m/s",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .9
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "y = {} m/s",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .10
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "z = {} m/s",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .11
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(egui::Label::new(format!("Star B")).monospace());
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "x = {} m/s",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .12
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "y = {} m/s",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .13
-                            ))
-                            .monospace(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!(
-                                "z = {} m/s",
-                                pos_vel_relative(
-                                    self.a.clone(),
-                                    self.e.clone(),
-                                    self.period.clone(),
-                                    self.pos_a_x.clone(),
-                                    self.pos_a_y.clone(),
-                                    self.pos_a_z.clone(),
-                                    self.pos_b_x.clone(),
-                                    self.pos_b_y.clone(),
-                                    self.pos_b_z.clone(),
-                                    self.new_base_x_x.clone(),
-                                    self.new_base_x_y.clone(),
-                                    self.new_base_x_z.clone(),
-                                    self.new_base_y_x.clone(),
-                                    self.new_base_y_y.clone(),
-                                    self.new_base_y_z.clone(),
-                                )
-                                .14
-                            ))
-                            .monospace(),
-                        );
-
-                        self.closest_distance = pos_vel_relative(
+                        self.distance_btob = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
@@ -1746,24 +1334,6 @@ Pos & Vel"
                             self.new_base_y_z.clone(),
                         )
                         .0;
-                        self.distance_b_b = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .1;
                         self.angle = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1781,61 +1351,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .2;
-                        self.a_pos_x = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .3;
-                        self.a_pos_y = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .4;
-                        self.a_pos_z = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .5;
+                        .1;
                         self.b_pos_x = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1853,7 +1369,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .6;
+                        .2;
                         self.b_pos_y = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1871,7 +1387,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .7;
+                        .3;
                         self.b_pos_z = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1889,8 +1405,8 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .8;
-                        self.a_pos_v_x = pos_vel_relative(
+                        .4;
+                        self.b_vel_x = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
@@ -1907,8 +1423,8 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .9;
-                        self.a_pos_v_y = pos_vel_relative(
+                        .5;
+                        self.b_vel_y = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
@@ -1925,8 +1441,8 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .10;
-                        self.a_pos_v_z = pos_vel_relative(
+                        .6;
+                        self.b_vel_z = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
@@ -1943,61 +1459,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .11;
-                        self.b_pos_v_x = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .12;
-                        self.b_pos_v_y = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .13;
-                        self.b_pos_v_z = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .14;
+                        .7;
 
                         self.x = position(
                             self.distance_km.clone(),
@@ -2077,6 +1539,90 @@ Pos & Vel"
                             euler_angle_transformations(self.lotn, self.aop, self.i).7;
                         self.new_base_z_z =
                             euler_angle_transformations(self.lotn, self.aop, self.i).8;
+
+                        ui.add(egui::Label::new(format!("Resulting position (km)")).heading());
+
+                        ui.add(egui::Label::new(format!("x = {} km", self.x)).monospace());
+
+                        ui.add(egui::Label::new(format!("y = {} km", self.y)).monospace());
+
+                        ui.add(egui::Label::new(format!("z = {} km", self.z)).monospace());
+
+                        ui.add(egui::Label::new(format!("Resulting velocity (km/s)")).heading());
+
+                        ui.add(egui::Label::new(format!("x = {} km/s", self.x_v)).monospace());
+
+                        ui.add(egui::Label::new(format!("y = {} km/s", self.y_v)).monospace());
+
+                        ui.add(egui::Label::new(format!("z = {} km/s", self.z_v)).monospace());
+
+                        ui.add(egui::Label::new(format!("New base")).heading());
+
+                        ui.add(
+                            egui::Label::new(format!(
+                                "ẋ: x({}), y({}), z({})",
+                                self.new_base_x_x, self.new_base_x_y, self.new_base_x_z
+                            ))
+                            .monospace(),
+                        );
+                        ui.add(
+                            egui::Label::new(format!(
+                                "ẏ: x({}), y({}), z({})",
+                                self.new_base_y_x, self.new_base_y_y, self.new_base_y_z
+                            ))
+                            .monospace(),
+                        );
+                        ui.add(
+                            egui::Label::new(format!(
+                                "ż: x({}), y({}), z({})",
+                                self.new_base_z_x, self.new_base_z_y, self.new_base_z_z
+                            ))
+                            .monospace(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!("Distance from new B to old B (m)")).heading(),
+                        );
+
+                        ui.add(
+                            egui::Label::new(format!("distance = {} m", self.distance_btob))
+                                .monospace(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Angle (degrees)")).heading());
+
+                        ui.add(egui::Label::new(format!("v = {} degrees", self.angle)).monospace());
+
+                        ui.add(
+                            egui::Label::new(format!("Relative resulting position (m)")).heading(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Companion star")).monospace());
+
+                        ui.add(egui::Label::new(format!("x = {} m", self.b_pos_x)).monospace());
+
+                        ui.add(egui::Label::new(format!("y = {} m", self.b_pos_y)).monospace());
+
+                        ui.add(egui::Label::new(format!("z = {} m", self.b_pos_z)).monospace());
+
+                        ui.add(
+                            egui::Label::new(format!("Relative resulting velocity (m/s)"))
+                                .heading(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Companion star")).monospace());
+
+                        ui.add(egui::Label::new(format!("x = {} m/s", self.b_vel_x)).monospace());
+
+                        ui.add(egui::Label::new(format!("y = {} m/s", self.b_vel_y)).monospace());
+
+                        ui.add(egui::Label::new(format!("z = {} m/s", self.b_vel_z)).monospace());
+                        ui.add(
+                            egui::Label::new(format!(
+                                "Position and Velocity are 0 for Primary star"
+                            ))
+                            .monospace(),
+                        );
                     });
                 });
             }
@@ -2111,21 +1657,14 @@ Pos & Vel"
                                     self.new_base_z_y,
                                     self.new_base_z_z,
                                     self.pass_mass,
-                                    self.closest_distance,
-                                    self.distance_b_b,
+                                    self.distance_btob,
                                     self.angle,
-                                    self.a_pos_x,
-                                    self.a_pos_y,
-                                    self.a_pos_z,
                                     self.b_pos_x,
                                     self.b_pos_y,
                                     self.b_pos_z,
-                                    self.a_pos_v_x,
-                                    self.a_pos_v_y,
-                                    self.a_pos_v_z,
-                                    self.b_pos_v_x,
-                                    self.b_pos_v_y,
-                                    self.b_pos_v_z,
+                                    self.b_vel_x,
+                                    self.b_vel_y,
+                                    self.b_vel_z,
                                 );
                             }
 
@@ -2148,21 +1687,14 @@ Pos & Vel"
                                     self.new_base_z_y,
                                     self.new_base_z_z,
                                     self.pass_mass,
-                                    self.closest_distance,
-                                    self.distance_b_b,
+                                    self.distance_btob,
                                     self.angle,
-                                    self.a_pos_x,
-                                    self.a_pos_y,
-                                    self.a_pos_z,
                                     self.b_pos_x,
                                     self.b_pos_y,
                                     self.b_pos_z,
-                                    self.a_pos_v_x,
-                                    self.a_pos_v_y,
-                                    self.a_pos_v_z,
-                                    self.b_pos_v_x,
-                                    self.b_pos_v_y,
-                                    self.b_pos_v_z,
+                                    self.b_vel_x,
+                                    self.b_vel_y,
+                                    self.b_vel_z,
                                 );
                             }
                         });
