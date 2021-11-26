@@ -69,21 +69,31 @@ fn pos_vel_relative(
     let mut distance_vec = vec![];
 
     for n in (0_i32..=360_i32).step_by(1) {
+        //SI units (meters and seconds)
+        let period_si = period / 31557600.;
+        let a_si = a * 1000.;
+        let pos_a_x_si = pos_a_x * 1000.;
+        let pos_a_y_si = pos_a_y * 1000.;
+        let pos_a_z_si = pos_a_z * 1000.;
+        let pos_b_x_si = pos_b_x * 1000.;
+        let pos_b_y_si = pos_b_y * 1000.;
+        let pos_b_z_si = pos_b_z * 1000.;
+
         //Push the angle to a vector
         angle_vec.push(f64::from(n));
 
         //Defining the semi minor axis
-        let b = a * (1. - e.powf(2.)).sqrt();
+        let b_si = a_si * (1. - e.powf(2.)).sqrt();
 
         //Position of B in new base
-        let x = a * f64::from(n).to_radians().cos();
-        let y = b * f64::from(n).to_radians().sin();
+        let x = a_si * f64::from(n).to_radians().cos();
+        let y = b_si * f64::from(n).to_radians().sin();
 
         //Get non relative position of B in original base
-        let rel_x_old = pos_b_x - pos_a_x;
-        let rel_x = rel_x_old + (a * e);
-        let rel_y = pos_b_y - pos_a_y;
-        let rel_z = pos_b_z - pos_a_z;
+        let rel_x_old = pos_b_x_si - pos_a_x_si;
+        let rel_x = rel_x_old + (a_si * e);
+        let rel_y = pos_b_y_si - pos_a_y_si;
+        let rel_z = pos_b_z_si - pos_a_z_si;
 
         //Get relative position in original base
         let res_x_old = (new_base_x_x * x) + (new_base_y_x * y);
@@ -107,7 +117,7 @@ fn pos_vel_relative(
         distance_vec.push(distance);
 
         //Position of A in original base
-        let x_a = a * e;
+        let x_a = a_si * e;
         let y_a = 0.;
         let z_a = 0.;
 
@@ -121,10 +131,10 @@ fn pos_vel_relative(
 
         //Velocity of B
         //Prep Values
-        let mu = (a.powf(3.)) / (((2. * std::f64::consts::PI) / (period / 31557600.)).powf(2.));
-        let p = a * (1. - e.powf(2.));
+        let mu = (a_si.powf(3.)) / ((period_si / (2. * std::f64::consts::PI)).powf(2.));
+        let p = a_si * (1. - e.powf(2.));
         let r = p / (1. + (e * f64::from(n).to_radians().cos()));
-        let v = (((2. * mu) / r) - (mu / a)).sqrt();
+        let v = (((2. * mu) / r) - (mu / a_si)).sqrt();
         let cos_theta = ((mu * p).sqrt()) / (v * r);
 
         //Velocity in new base
@@ -1333,13 +1343,12 @@ Pos & Vel"
                         );
 
                         ui.add(
-                            egui::Label::new(format!("Distance from new B to olf B (km)"))
-                                .heading(),
+                            egui::Label::new(format!("Distance from new B to olf B (m)")).heading(),
                         );
 
                         ui.add(
                             egui::Label::new(format!(
-                                "v = {} degrees",
+                                "v = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1364,7 +1373,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "v = {} degrees",
+                                "v = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1387,7 +1396,7 @@ Pos & Vel"
                             .monospace(),
                         );
 
-                        ui.add(egui::Label::new(format!("Angle (degrees)")).heading());
+                        ui.add(egui::Label::new(format!("Angle (m)")).heading());
 
                         ui.add(
                             egui::Label::new(format!(
@@ -1415,14 +1424,14 @@ Pos & Vel"
                         );
 
                         ui.add(
-                            egui::Label::new(format!("Relative resulting position (km)")).heading(),
+                            egui::Label::new(format!("Relative resulting position (m)")).heading(),
                         );
 
                         ui.add(egui::Label::new(format!("Star A")).monospace());
 
                         ui.add(
                             egui::Label::new(format!(
-                                "x = {} km",
+                                "x = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1447,7 +1456,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "y = {} km",
+                                "y = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1472,7 +1481,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "z = {} km",
+                                "z = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1499,7 +1508,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "x = {} km",
+                                "x = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1524,7 +1533,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "y = {} km",
+                                "y = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1549,7 +1558,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "z = {} km",
+                                "z = {} m",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1573,7 +1582,7 @@ Pos & Vel"
                         );
 
                         ui.add(
-                            egui::Label::new(format!("Relative resulting velocity (km/s)"))
+                            egui::Label::new(format!("Relative resulting velocity (m/s)"))
                                 .heading(),
                         );
 
@@ -1581,7 +1590,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "x = {} km/s",
+                                "x = {} m/s",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1606,7 +1615,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "y = {} km/s",
+                                "y = {} m/s",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1631,7 +1640,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "z = {} km/s",
+                                "z = {} m/s",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1658,7 +1667,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "x = {} km/s",
+                                "x = {} m/s",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1683,7 +1692,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "y = {} km/s",
+                                "y = {} m/s",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
@@ -1708,7 +1717,7 @@ Pos & Vel"
 
                         ui.add(
                             egui::Label::new(format!(
-                                "z = {} km/s",
+                                "z = {} m/s",
                                 pos_vel_relative(
                                     self.a.clone(),
                                     self.e.clone(),
