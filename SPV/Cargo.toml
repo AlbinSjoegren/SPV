@@ -20,4 +20,3 @@ short_description = "Calculates a stars position and velocity in the cartesian c
 icon = ["icon.png"]
 
 [package.metadata.appimage]
-resources = ["src/data"]
