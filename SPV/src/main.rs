@@ -40,7 +40,7 @@ fn pos_vel_relative(
 
     let mut distance_vec = vec![];
 
-    for n in (0_i32..=360_i32).step_by(1) {
+    for n in (0_i32..=3600_i32).step_by(1) {
         //SI units (meters and seconds)
         let a_si = a * 1000.;
         let pos_a_x_si = pos_a_x * 1000.;
@@ -51,14 +51,14 @@ fn pos_vel_relative(
         let pos_b_z_si = pos_b_z * 1000.;
 
         //Push the angle to a vector
-        angle_vec.push(f64::from(n));
+        angle_vec.push((f64::from(n)) / 10.);
 
         //Defining the semi minor axis
-        let b_si = a_si * (1. - e.powf(2.)).sqrt();
+        let b_si = a_si * ((1. - e.powf(2.)).sqrt());
 
         //Position of B in new base
-        let x = a_si * f64::from(n).to_radians().cos();
-        let y = b_si * f64::from(n).to_radians().sin();
+        let x = a_si * (((f64::from(n)) / 10.).to_radians().cos());
+        let y = b_si * (((f64::from(n)) / 10.).to_radians().sin());
 
         //Get non relative position of B in original base
         let rel_x = pos_b_x_si - pos_a_x_si;
@@ -111,16 +111,16 @@ fn pos_vel_relative(
     let a_si = a * 1000.;
 
     //Defining the semi minor axis
-    let b_si = a_si * (1. - e.powf(2.)).sqrt();
+    let b_si = a_si * ((1. - e.powf(2.)).sqrt());
 
     //Velocity of B
     //Prep Values
-    let mu = (a_si.powf(3.) * 4. * std::f64::consts::PI.powf(2.)) / period_si.powf(2.);
-    let p = b_si.powf(2.) / a_si;
+    let mu = ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (period_si.powf(2.));
+    let p = (b_si.powf(2.)) / a_si;
 
     //Velocity in new base
-    let x_v = (0. - (mu / p).sqrt()) * angle.to_radians().sin();
-    let y_v = ((mu / p).sqrt()) * (e + angle.to_radians().cos());
+    let x_v = (0. - ((mu / p).sqrt())) * (angle.to_radians().sin());
+    let y_v = ((mu / p).sqrt()) * (e + (angle.to_radians().cos()));
 
     //Velocity in original base
     let b_vel_x = (new_base_x_x * x_v) + (new_base_y_x * y_v);
