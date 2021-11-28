@@ -1,0 +1,100 @@
+Text color: ffffff
+Background color: 23272e
+Packages:
+	\usepackage{amsmath}
+	\usepackage{amsfonts}
+	\usepackage{amssymb}
+	\usepackage{gensymb}
+
+
+1.
+b = a\cdot\sqrt{1-e^2} \\
+\\
+p = \frac{b^2}{a} \\
+\\
+\mu = \frac{a^3 \cdot 4 \cdot \pi^2}{P^2}
+
+2.
+x = l \cdot \cos{(ra)} \cdot \sin{(dec + 90\degree)} \\
+\\
+y = l \cdot \sin{(ra)} \cdot \sin{(dec + 90\degree)} \\
+\\
+z = l \cdot \cos{(dec + 90\degree)}
+
+3.
+x_u = \frac{x}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
+\\
+y_u = \frac{y}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
+\\
+z_u = \frac{z}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}}
+
+4.
+x_{ra-v} = x_u \cdot R_v \\
+\\
+y_{ra-v} = y_u \cdot R_v \\
+\\
+z_{ra-v} = z_u \cdot R_v
+
+5.
+x_{\mu} = l \cdot \cos(ra + \mu_{ra}) \cdot \sin(dec + \mu_{dec} + 90\degree) \\
+\\
+y_{\mu} = l \cdot \sin(ra + \mu_{ra}) \cdot \sin(dec + \mu_{dec} + 90\degree) \\
+\\
+z_{\mu} = l \cdot \cos(dec + \mu_{dec} + 90\degree)
+
+6.
+x_{\mu-u} = x_{\mu} - x \\
+\\
+y_{\mu-u} = y_{\mu} - y \\
+\\
+z_{\mu-u} = z_{\mu} - z
+
+7.
+x_{\mu-v} =  x_{\mu-u} \cdot x_{\mu} \\
+\\
+y_{\mu-v} =  y_{\mu-u} \cdot y_{\mu} \\
+\\
+z_{\mu-v} =  z_{\mu-u} \cdot z_{\mu}
+
+8.
+x_v = x_{ra-v} + x_{\mu-v} \\
+\\
+y_v = y_{ra-v} + y_{\mu-v} \\
+\\
+z_v = z_{ra-v} + z_{\mu-v}
+
+9.
+\hat{x} = (x_1 \cdot x) + (x_2 \cdot y) + (x_3 \cdot z) \\
+\\
+\hat{y} = (y_1 \cdot x) + (y_2 \cdot y) + (y_3 \cdot z) \\
+\\
+\hat{z} = (z_1 \cdot x) + (z_2 \cdot y) + (z_3 \cdot z)
+
+10.
+x_1 = \cos{\Omega} \cdot \cos{\omega} - \sin{\Omega} \cdot \cos{i} \cdot \sin{\omega} \\
+\\
+x_2 = \sin{\Omega} \cdot \cos{\omega} + \cos{\Omega} \cdot \cos{i} \cdot \sin{\omega} \\
+\\
+x_3 = \sin{i} \cdot \sin{\omega}
+
+11.
+y_1 = -\cos{\Omega} \cdot \sin{\omega} - \sin{\Omega} \cdot \cos{i} \cdot \cos{\omega} \\
+\\
+y_2 = -\sin{\Omega} \cdot \sin{\omega} + \cos{\Omega} \cdot \cos{i} \cdot \cos{\omega} \\
+\\
+y_3 = \sin{i} \cdot \cos{\omega}
+
+12.
+z_1 = \sin{i} \cdot \sin{\Omega} \\
+\\
+z_2 = -\sin{i} \cdot \cos{\Omega} \\
+\\
+z_3 = \cos{i}
+
+13.
+x = (x_1 \cdot \hat{x}) + (y_1 \cdot \hat{y}) \\
+\\
+y = (x_2 \cdot \hat{x}) + (y_2 \cdot \hat{y}) \\
+\\
+z = (x_3 \cdot \hat{x}) + (y_3 \cdot \hat{y})
+
