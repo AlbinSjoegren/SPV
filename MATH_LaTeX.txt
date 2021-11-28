@@ -5,7 +5,8 @@ Packages:
 	\usepackage{amsfonts}
 	\usepackage{amssymb}
 	\usepackage{gensymb}
-
+Font size: 20px
+Site: https://quicklatex.com
 
 1.
 b = a\cdot\sqrt{1-e^2} \\
