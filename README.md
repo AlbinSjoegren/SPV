@@ -42,7 +42,7 @@ The data will _ALLWAYS_ be in directories based on the name given under _General
 
 ### Position
 
-![image](https://user-images.githubusercontent.com/23136737/138668712-e3c6ab2f-90bd-486a-81ea-1ed1e62d3e0a.png)
+![eq1](https://quicklatex.com/cache3/e4/ql_0f90d3f97a91306f78ad27e2e8a555e4_l3.png)
 
 Where x, y and z are the coordinates in the cartesian coordinate system in [km].
 
