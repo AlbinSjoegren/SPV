@@ -13,7 +13,7 @@ Then simply run:
 ```
 cargo run --release
 ```
-in the directory with the `src` directory and `Cargo.toml` in it.
+in the directory with the `src` directory and `Cargo.toml`.
 
 I _HIGHLY_ recommend you build from the latest created tag an not the main branch.
 
