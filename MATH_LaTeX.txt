@@ -16,86 +16,118 @@ p = \frac{b^2}{a} \\
 \mu = \frac{a^3 \cdot 4 \cdot \pi^2}{P^2}
 
 2.
-x = l \cdot \cos{(ra)} \cdot \sin{(dec + 90\degree)} \\
-\\
-y = l \cdot \sin{(ra)} \cdot \sin{(dec + 90\degree)} \\
-\\
-z = l \cdot \cos{(dec + 90\degree)}
+P = \begin{pmatrix}
+x \\
+y \\
+z
+\end{pmatrix}
 
 3.
-x_u = \frac{x}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
-\\
-y_u = \frac{y}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
-\\
-z_u = \frac{z}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}}
+P_1 = \begin{pmatrix}
+l \cdot \cos(ra) \cdot \sin(dec + 90\degree) \\
+l \cdot \sin(ra) \cdot \sin(dec + 90\degree) \\
+l \cdot \cos(dec + 90\degree)
+\end{pmatrix}
 
 4.
-x_{ra-v} = x_u \cdot R_v \\
-\\
-y_{ra-v} = y_u \cdot R_v \\
-\\
-z_{ra-v} = z_u \cdot R_v
+w_u = \begin{pmatrix}
+\frac{(P_1)_x}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
+\frac{(P_1)_y}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
+\frac{(P_1)_z}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}}
+\end{pmatrix}
 
 5.
-x_{\mu} = l \cdot \cos(ra + \mu_{ra}) \cdot \sin(dec + \mu_{dec} + 90\degree) \\
-\\
-y_{\mu} = l \cdot \sin(ra + \mu_{ra}) \cdot \sin(dec + \mu_{dec} + 90\degree) \\
-\\
-z_{\mu} = l \cdot \cos(dec + \mu_{dec} + 90\degree)
+v_{R_v} = w_u \cdot R_v
 
 6.
-x_{\mu-u} = x_{\mu} - x \\
-\\
-y_{\mu-u} = y_{\mu} - y \\
-\\
-z_{\mu-u} = z_{\mu} - z
+P_2 = \begin{pmatrix}
+l \cdot \cos(ra + \mu_{ra}) \cdot \sin(dec + \mu_{dec} + 90\degree) \\
+l \cdot \sin(ra + \mu_{ra}) \cdot \sin(dec + \mu_{dec} + 90\degree) \\
+l \cdot \cos(dec + \mu_{dec} + 90\degree)
+\end{pmatrix}
 
 7.
-x_{\mu-v} =  x_{\mu-u} \cdot x_{\mu} \\
-\\
-y_{\mu-v} =  y_{\mu-u} \cdot y_{\mu} \\
-\\
-z_{\mu-v} =  z_{\mu-u} \cdot z_{\mu}
+P_3 = P_2 - P_1
 
 8.
-x_v = x_{ra-v} + x_{\mu-v} \\
-\\
-y_v = y_{ra-v} + y_{\mu-v} \\
-\\
-z_v = z_{ra-v} + z_{\mu-v}
+v_{\mu} = P_3 \cdot \mu
 
 9.
-\hat{x} = (x_1 \cdot x) + (x_2 \cdot y) + (x_3 \cdot z) \\
-\\
-\hat{y} = (y_1 \cdot x) + (y_2 \cdot y) + (y_3 \cdot z) \\
-\\
-\hat{z} = (z_1 \cdot x) + (z_2 \cdot y) + (z_3 \cdot z)
+v = v_{R_v} + v_{\mu}
 
 10.
+\hat{P} = \begin{pmatrix}
+(x_1 \cdot P_x) + (x_2 \cdot P_y) + (x_3 \cdot P_z) \\
+(y_1 \cdot P_x) + (y_2 \cdot P_y) + (y_3 \cdot P_z) \\
+(z_1 \cdot P_x) + (z_2 \cdot P_y) + (z_3 \cdot P_z)
+\end{pmatrix}
+
+11.
+P = \begin{pmatrix}
+(x_1 \cdot \hat{P}_x) + (y_1 \cdot \hat{P}_y) \\
+(x_2 \cdot \hat{P}_x) + (y_2 \cdot \hat{P}_y) \\
+(x_3 \cdot \hat{P}_x) + (y_3 \cdot \hat{P}_y)
+\end{pmatrix}
+
+12.
 x_1 = \cos{\Omega} \cdot \cos{\omega} - \sin{\Omega} \cdot \cos{i} \cdot \sin{\omega} \\
 \\
 x_2 = \sin{\Omega} \cdot \cos{\omega} + \cos{\Omega} \cdot \cos{i} \cdot \sin{\omega} \\
 \\
 x_3 = \sin{i} \cdot \sin{\omega}
 
-11.
+13.
 y_1 = -\cos{\Omega} \cdot \sin{\omega} - \sin{\Omega} \cdot \cos{i} \cdot \cos{\omega} \\
 \\
 y_2 = -\sin{\Omega} \cdot \sin{\omega} + \cos{\Omega} \cdot \cos{i} \cdot \cos{\omega} \\
 \\
 y_3 = \sin{i} \cdot \cos{\omega}
 
-12.
+14.
 z_1 = \sin{i} \cdot \sin{\Omega} \\
 \\
 z_2 = -\sin{i} \cdot \cos{\Omega} \\
 \\
 z_3 = \cos{i}
 
-13.
-x = (x_1 \cdot \hat{x}) + (y_1 \cdot \hat{y}) \\
-\\
-y = (x_2 \cdot \hat{x}) + (y_2 \cdot \hat{y}) \\
-\\
-z = (x_3 \cdot \hat{x}) + (y_3 \cdot \hat{y})
+15.
+P_A = \begin{pmatrix}
+0 \\
+0 \\
+0
+\end{pmatrix}
 
+16.
+P_B = \begin{pmatrix}
+a_1 \cdot \cos\theta_1 \\
+b_1 \cdot \sin\theta_1 \\
+0
+\end{pmatrix}
+
+17.
+P_C = \begin{pmatrix}
+a_2 \cdot \cos\theta_2 \\
+b_2 \cdot \sin\theta_2 \\
+0
+\end{pmatrix}
+
+18.
+v_A = \begin{pmatrix}
+0 \\
+0 \\
+0
+\end{pmatrix}
+
+19.
+v_B = \begin{pmatrix}
+- \sqrt{\frac{\mu_1}{p_1}} \cdot \sin\theta_1 \\
+\sqrt{\frac{\mu_1}{p_1}} \cdot (e_1 + \cos\theta_1) \\
+0
+\end{pmatrix}
+
+20.
+v_C = \begin{pmatrix}
+- \sqrt{\frac{\mu_2}{p_2}} \cdot \sin\theta_2 \\
+\sqrt{\frac{\mu_2}{p_2}} \cdot (e_2 + \cos\theta_2) \\
+0
+\end{pmatrix}
