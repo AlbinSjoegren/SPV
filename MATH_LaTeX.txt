@@ -50,7 +50,7 @@ l \cdot \cos(dec + \mu_{dec} + 90\degree)
 P_3 = P_2 - P_1
 
 8.
-v_{\mu} = P_3 \cdot \mu
+v_{\mu} = P_3
 
 9.
 v = v_{R_v} + v_{\mu}
