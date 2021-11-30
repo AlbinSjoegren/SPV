@@ -31,9 +31,9 @@ l \cdot \cos(dec + 90\degree)
 
 4.
 w_u = \begin{pmatrix}
-\frac{(P_1)_x}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
-\frac{(P_1)_y}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}} \\
-\frac{(P_1)_z}{\sqrt{(0-x)^2 + (0-y)^2 + (0-z)^2}}
+\frac{(P_1)_x}{\sqrt{x^2 + y^2 + z^2}} \\
+\frac{(P_1)_y}{\sqrt{x^2 + y^2 + z^2}} \\
+\frac{(P_1)_z}{\sqrt{x^2 + y^2 + z^2}}
 \end{pmatrix}
 
 5.
