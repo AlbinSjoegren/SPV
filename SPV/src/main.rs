@@ -769,17 +769,17 @@ impl epi::App for Canvas {
 
         let mut style: egui::Style = (*ctx.style()).clone();
 
-        style.visuals.extreme_bg_color = egui::Color32::from_rgb(30, 34, 39);
+        style.visuals.extreme_bg_color = egui::Color32::from_rgb(45, 51, 59);
 
-        style.visuals.faint_bg_color = egui::Color32::from_rgb(30, 34, 39);
+        style.visuals.faint_bg_color = egui::Color32::from_rgb(45, 51, 59);
 
-        style.visuals.code_bg_color = egui::Color32::from_rgb(30, 34, 39);
+        style.visuals.code_bg_color = egui::Color32::from_rgb(45, 51, 59);
 
         style.visuals.hyperlink_color = egui::Color32::from_rgb(255, 0, 0);
 
-        style.visuals.override_text_color = Some(egui::Color32::from_rgb(160, 167, 179));
+        style.visuals.override_text_color = Some(egui::Color32::from_rgb(173, 186, 199));
 
-        style.visuals.window_corner_radius = 0.1;
+        style.visuals.window_corner_radius = 10.0;
 
         style.visuals.button_frame = true;
 
@@ -788,15 +788,15 @@ impl epi::App for Canvas {
         style.visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(35, 39, 46);
 
         style.visuals.widgets.noninteractive.fg_stroke =
-            egui::Stroke::new(0., egui::Color32::from_rgb(160, 167, 179));
+            egui::Stroke::new(0., egui::Color32::from_rgb(173, 186, 199));
 
         style.visuals.widgets.inactive.bg_fill = egui::Color32::TRANSPARENT;
 
-        style.visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(30, 34, 39);
+        style.visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(45, 51, 59);
 
-        style.visuals.widgets.active.bg_fill = egui::Color32::from_rgb(30, 34, 39);
+        style.visuals.widgets.active.bg_fill = egui::Color32::from_rgb(45, 51, 59);
 
-        style.visuals.widgets.open.bg_fill = egui::Color32::from_rgb(30, 34, 39);
+        style.visuals.widgets.open.bg_fill = egui::Color32::from_rgb(45, 51, 59);
 
         ctx.set_style(style);
 
