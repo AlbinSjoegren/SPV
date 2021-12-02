@@ -203,22 +203,10 @@ fn velocity(
     let proper_motion_vector_y = proper_motion_y - y;
     let proper_motion_vector_z = proper_motion_z - z;
 
-    let mut normalized_vector_x = 0.;
-    let mut normalized_vector_y = 0.;
-    let mut normalized_vector_z = 0.;
-    if radial_velocity < 0. {
-        normalized_vector_x = 0. - (x / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt());
-        normalized_vector_y = 0. - (y / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt());
-        normalized_vector_z = 0. - (z / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt());
-    } else if radial_velocity > 0. {
-        normalized_vector_x = x / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
-        normalized_vector_y = y / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
-        normalized_vector_z = z / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
-    } else {
-        normalized_vector_x = 0.;
-        normalized_vector_y = 0.;
-        normalized_vector_z = 0.;
-    }
+    let normalized_vector_x = x / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
+    let normalized_vector_y = y / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
+    let normalized_vector_z = z / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
+
     let radial_velocity_vector_x = normalized_vector_x * radial_velocity;
     let radial_velocity_vector_y = normalized_vector_y * radial_velocity;
     let radial_velocity_vector_z = normalized_vector_z * radial_velocity;
