@@ -45,8 +45,3 @@ __SPV__ can currently do position and velocity calculations based on raw input d
 3. Rust crate version
 4. Organizing/file structure options for batch output
 5. The ability to forward information from input files to the output files (example: _Luminosity_)
-
-## What it can't do
-
-1. Get any radial velocity if the position is 0
-2. Yeah that's about it :)
