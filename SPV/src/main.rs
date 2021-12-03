@@ -57,7 +57,7 @@ fn pos_vel_relative(
         let b_si = a_si * ((1. - e.powf(2.)).sqrt());
 
         //Position of B in new base
-        let x = a_si * (((f64::from(n)) / 10.).to_radians().cos());
+        let x = (a_si * (((f64::from(n)) / 10.).to_radians().cos())) - (a_si * e);
         let y = b_si * (((f64::from(n)) / 10.).to_radians().sin());
 
         //Get non relative position of B in original base
