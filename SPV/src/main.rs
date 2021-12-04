@@ -19,6 +19,7 @@ fn pos_vel_relative(
     a: f64,
     e: f64,
     period: f64,
+    time_since_periapsis: f64,
     pos_a_x: f64,
     pos_a_y: f64,
     pos_a_z: f64,
@@ -32,7 +33,7 @@ fn pos_vel_relative(
     new_base_y_y: f64,
     new_base_y_z: f64,
 ) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
-    let mut angle_vec = vec![];
+    /*let mut angle_vec = vec![];
 
     let mut vec_x_b = vec![];
     let mut vec_y_b = vec![];
@@ -86,7 +87,7 @@ fn pos_vel_relative(
         //Pushing to vector
         distance_vec.push(distance);
     }
-
+    
     let min = distance_vec
         .iter()
         .min_by(|&&v1, &&v2| v1.abs().partial_cmp(&v2.abs()).unwrap());
@@ -104,31 +105,52 @@ fn pos_vel_relative(
 
     let b_pos_x = *vec_x_b.iter().nth(distance_pos).unwrap();
     let b_pos_y = *vec_y_b.iter().nth(distance_pos).unwrap();
-    let b_pos_z = *vec_z_b.iter().nth(distance_pos).unwrap();
+    let b_pos_z = *vec_z_b.iter().nth(distance_pos).unwrap();*/
 
     //SI units (meters and seconds)
     let period_si = period * 31557600.;
+    let time_since_periapsis_si = time_since_periapsis * 31557600.;
     let a_si = a * 1000.;
+    let n = 20_i32;
+    let mean_anom = std::f64::consts::PI * 2. * time_since_periapsis_si / period_si;
+    let mut ecc_anom = mean_anom;
+
+    for _i in (0_i32..=n).step_by(1) {
+        ecc_anom = mean_anom + e * ecc_anom.sin();
+    }
 
     //Defining the semi minor axis
     let b_si = a_si * ((1. - e.powf(2.)).sqrt());
 
-    //Velocity of B
     //Prep Values
     let mu = ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (period_si.powf(2.));
     let p = (b_si.powf(2.)) / a_si;
+    let v = 2. * (((1. + e)/(1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
 
+    //Position of B
+    //Position in new base
+    let x = (p * v.cos()) / (1. + e * v.cos());
+    let y = (p * v.sin()) / (1. + e * v.cos());
+
+    //Position in original base
+    let b_pos_x = (new_base_x_x * x) + (new_base_y_x * y);
+    let b_pos_y = (new_base_x_y * x) + (new_base_y_y * y);
+    let b_pos_z = (new_base_x_z * x) + (new_base_y_z * y);
+
+    //Velocity of B
     //Velocity in new base
-    let x_v = (0. - ((mu / p).sqrt())) * (angle.to_radians().sin());
-    let y_v = ((mu / p).sqrt()) * (e + (angle.to_radians().cos()));
+    let x_v = (0. - ((mu / p).sqrt())) * (v.sin());
+    let y_v = ((mu / p).sqrt()) * (e + (v.cos()));
 
     //Velocity in original base
     let b_vel_x = (new_base_x_x * x_v) + (new_base_y_x * y_v);
     let b_vel_y = (new_base_x_y * x_v) + (new_base_y_y * y_v);
     let b_vel_z = (new_base_x_z * x_v) + (new_base_y_z * y_v);
 
+    let distance = (x.powf(2.) + y.powf(2.)).sqrt();
+
     return (
-        distance, angle, b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
+        distance, v.to_degrees(), b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
     );
 }
 
@@ -709,10 +731,12 @@ pub struct Canvas {
     a: f64,
     e: f64,
     period: f64,
+    time_since_periapsis: f64,
 
     a_str: String,
     e_str: String,
     period_str: String,
+    time_since_periapsis_str: String,
 
     pos_a_x: f64,
     pos_a_y: f64,
@@ -1164,6 +1188,18 @@ Pos & Vel"
 
                         ui.add(egui::Label::new(format!("{} years", self.period)).monospace());
 
+                        ui.label("");
+
+                        ui.add(egui::Label::new(format!("Time since periapsis (t in years)")).monospace());
+
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.time_since_periapsis_str));
+
+                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                            self.time_since_periapsis = self.time_since_periapsis_str.clone().parse().unwrap();
+                        }
+
+                        ui.add(egui::Label::new(format!("{} years", self.time_since_periapsis)).monospace());
+
                         ui.label(
                             "
                         ",
@@ -1308,6 +1344,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
@@ -1326,6 +1363,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
@@ -1344,6 +1382,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
@@ -1362,6 +1401,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
@@ -1380,6 +1420,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
@@ -1398,6 +1439,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
@@ -1416,6 +1458,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
@@ -1434,6 +1477,7 @@ Pos & Vel"
                             self.a.clone(),
                             self.e.clone(),
                             self.period.clone(),
+                            self.time_since_periapsis.clone(),
                             self.pos_a_x.clone(),
                             self.pos_a_y.clone(),
                             self.pos_a_z.clone(),
