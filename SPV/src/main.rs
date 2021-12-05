@@ -45,9 +45,7 @@ fn pos_vel_relative(
     //Prep Values
     let mu = ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (period_si.powf(2.));
     let p = (b_si.powf(2.)) / a_si;
-    
-    let temp = ((1. + e)/(1. - e)).sqrt() * (ecc_anom * 0.5).tan();
-    let v = 2. * (temp.sin()).atan2(temp.cos());
+    let v = 2. * (((1. + e)/(1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
 
     //Position of B
     //Position in new base
