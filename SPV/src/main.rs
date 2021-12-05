@@ -20,12 +20,6 @@ fn pos_vel_relative(
     e: f64,
     period: f64,
     time_since_periapsis: f64,
-    pos_a_x: f64,
-    pos_a_y: f64,
-    pos_a_z: f64,
-    pos_b_x: f64,
-    pos_b_y: f64,
-    pos_b_z: f64,
     new_base_x_x: f64,
     new_base_x_y: f64,
     new_base_x_z: f64,
@@ -33,80 +27,6 @@ fn pos_vel_relative(
     new_base_y_y: f64,
     new_base_y_z: f64,
 ) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
-    /*let mut angle_vec = vec![];
-
-    let mut vec_x_b = vec![];
-    let mut vec_y_b = vec![];
-    let mut vec_z_b = vec![];
-
-    let mut distance_vec = vec![];
-
-    for n in (0_i32..=3600_i32).step_by(1) {
-        //SI units (meters and seconds)
-        let a_si = a * 1000.;
-        let pos_a_x_si = pos_a_x * 1000.;
-        let pos_a_y_si = pos_a_y * 1000.;
-        let pos_a_z_si = pos_a_z * 1000.;
-        let pos_b_x_si = pos_b_x * 1000.;
-        let pos_b_y_si = pos_b_y * 1000.;
-        let pos_b_z_si = pos_b_z * 1000.;
-
-        //Push the angle to a vector
-        angle_vec.push((f64::from(n)) / 10.);
-
-        //Defining the semi minor axis
-        let b_si = a_si * ((1. - e.powf(2.)).sqrt());
-
-        //Position of B in new base
-        let x = (a_si * (((f64::from(n)) / 10.).to_radians().cos())) - (a_si * e);
-        let y = b_si * (((f64::from(n)) / 10.).to_radians().sin());
-
-        //Get non relative position of B in original base
-        let rel_x = pos_b_x_si - pos_a_x_si;
-        let rel_y = pos_b_y_si - pos_a_y_si;
-        let rel_z = pos_b_z_si - pos_a_z_si;
-
-        //Get relative position in original base
-        let res_x_old = (new_base_x_x * x) + (new_base_y_x * y);
-        let res_y_old = (new_base_x_y * x) + (new_base_y_y * y);
-        let res_z_old = (new_base_x_z * x) + (new_base_y_z * y);
-
-        //Get difference in x, y and z
-        let res_x = res_x_old - rel_x;
-        let res_y = res_y_old - rel_y;
-        let res_z = res_z_old - rel_z;
-
-        //Get distance from relative positions to actual position in original base
-        let distance = (res_x.powf(2.) + res_y.powf(2.) + res_z.powf(2.)).sqrt();
-
-        //Pushing to vector
-        vec_x_b.push(res_x_old);
-        vec_y_b.push(res_y_old);
-        vec_z_b.push(res_z_old);
-
-        //Pushing to vector
-        distance_vec.push(distance);
-    }
-    
-    let min = distance_vec
-        .iter()
-        .min_by(|&&v1, &&v2| v1.abs().partial_cmp(&v2.abs()).unwrap());
-
-    let closest_distance = *min.unwrap();
-
-    let distance_pos = distance_vec
-        .iter()
-        .position(|&x| x == closest_distance)
-        .unwrap();
-
-    let distance = *distance_vec.iter().nth(distance_pos).unwrap();
-
-    let angle = *angle_vec.iter().nth(distance_pos).unwrap();
-
-    let b_pos_x = *vec_x_b.iter().nth(distance_pos).unwrap();
-    let b_pos_y = *vec_y_b.iter().nth(distance_pos).unwrap();
-    let b_pos_z = *vec_z_b.iter().nth(distance_pos).unwrap();*/
-
     //SI units (meters and seconds)
     let period_si = period * 31557600.;
     let time_since_periapsis_si = time_since_periapsis * 31557600.;
@@ -125,7 +45,9 @@ fn pos_vel_relative(
     //Prep Values
     let mu = ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (period_si.powf(2.));
     let p = (b_si.powf(2.)) / a_si;
-    let v = 2. * (((1. + e)/(1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
+    
+    let temp = ((1. + e)/(1. - e)).sqrt() * (ecc_anom * 0.5).tan();
+    let v = 2. * (temp.sin()).atan2(temp.cos());
 
     //Position of B
     //Position in new base
@@ -149,8 +71,10 @@ fn pos_vel_relative(
 
     let distance = (x.powf(2.) + y.powf(2.)).sqrt();
 
+    let v_deg = v.to_degrees();
+
     return (
-        distance, v.to_degrees(), b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
+        distance, v_deg, b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
     );
 }
 
@@ -738,20 +662,6 @@ pub struct Canvas {
     period_str: String,
     time_since_periapsis_str: String,
 
-    pos_a_x: f64,
-    pos_a_y: f64,
-    pos_a_z: f64,
-    pos_b_x: f64,
-    pos_b_y: f64,
-    pos_b_z: f64,
-
-    pos_a_x_str: String,
-    pos_a_y_str: String,
-    pos_a_z_str: String,
-    pos_b_x_str: String,
-    pos_b_y_str: String,
-    pos_b_z_str: String,
-
     pass_mass: f64,
 
     pass_mass_str: String,
@@ -1199,70 +1109,6 @@ Pos & Vel"
                         }
 
                         ui.add(egui::Label::new(format!("{} years", self.time_since_periapsis)).monospace());
-
-                        ui.label(
-                            "
-                        ",
-                        );
-
-                        ui.add(egui::Label::new(format!("Old positions")).heading());
-
-                        ui.add(egui::Label::new(format!("A star position (km)")).monospace());
-
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_a_x_str));
-
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.pos_a_x = self.pos_a_x_str.clone().parse().unwrap();
-                        }
-
-                        ui.add(egui::Label::new(format!("x = {} km", self.pos_a_x)).monospace());
-
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_a_y_str));
-
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.pos_a_y = self.pos_a_y_str.clone().parse().unwrap();
-                        }
-
-                        ui.add(egui::Label::new(format!("y = {} km", self.pos_a_y)).monospace());
-
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_a_z_str));
-
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.pos_a_z = self.pos_a_z_str.clone().parse().unwrap();
-                        }
-
-                        ui.add(egui::Label::new(format!("z = {} km", self.pos_a_z)).monospace());
-
-                        ui.label(
-                            "
-                        ",
-                        );
-
-                        ui.add(egui::Label::new(format!("B star position (km)")).monospace());
-
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_b_x_str));
-
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.pos_b_x = self.pos_b_x_str.clone().parse().unwrap();
-                        }
-
-                        ui.add(egui::Label::new(format!("x = {} km", self.pos_b_x)).monospace());
-
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_b_y_str));
-
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.pos_b_y = self.pos_b_y_str.clone().parse().unwrap();
-                        }
-
-                        ui.add(egui::Label::new(format!("y = {} km", self.pos_b_y)).monospace());
-
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.pos_b_z_str));
-
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.pos_b_z = self.pos_b_z_str.clone().parse().unwrap();
-                        }
-
-                        ui.add(egui::Label::new(format!("z = {} km", self.pos_b_z)).monospace());
                     });
                 });
             }
@@ -1345,12 +1191,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
@@ -1364,12 +1204,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
@@ -1383,12 +1217,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
@@ -1402,12 +1230,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
@@ -1421,12 +1243,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
@@ -1440,12 +1256,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
@@ -1459,12 +1269,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
@@ -1478,12 +1282,6 @@ Pos & Vel"
                             self.e.clone(),
                             self.period.clone(),
                             self.time_since_periapsis.clone(),
-                            self.pos_a_x.clone(),
-                            self.pos_a_y.clone(),
-                            self.pos_a_z.clone(),
-                            self.pos_b_x.clone(),
-                            self.pos_b_y.clone(),
-                            self.pos_b_z.clone(),
                             self.new_base_x_x.clone(),
                             self.new_base_x_y.clone(),
                             self.new_base_x_z.clone(),
