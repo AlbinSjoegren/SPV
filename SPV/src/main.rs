@@ -44,7 +44,7 @@ fn pos_vel_relative(
     //Prep Values
     let mu = ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (period_si.powf(2.));
     let p = (b_si.powf(2.)) / a_si;
-    let v = 2. * (((1. + e)/(1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
+    let v = 2. * (((1. + e) / (1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
 
     //Position of B
     //Position in new base
@@ -68,9 +68,7 @@ fn pos_vel_relative(
 
     let v_deg = v.to_degrees();
 
-    return (
-        v_deg, b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
-    );
+    return (v_deg, b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z);
 }
 
 fn euler_angle_transformations(
@@ -266,9 +264,7 @@ fn export_json(
         y: b_vel_y,
         z: b_vel_z,
     };
-    let rel_debug_data = ExportRelDebug {
-        angle: angle,
-    };
+    let rel_debug_data = ExportRelDebug { angle: angle };
 
     let mut path = std::path::PathBuf::from("./");
     path.push(name_str.clone().replace(" ", "_") + "_json");
@@ -397,9 +393,7 @@ fn export_txt(
         y: b_vel_y,
         z: b_vel_z,
     };
-    let rel_debug_data = ExportRelDebug {
-        angle: angle,
-    };
+    let rel_debug_data = ExportRelDebug { angle: angle };
 
     let mut path = std::path::PathBuf::from("./");
     path.push(name_str.clone().replace(" ", "_") + "_txt");
@@ -555,6 +549,7 @@ pub struct Canvas {
     new_base_z_z: f64,
 
     a: f64,
+    a_au: f64,
     e: f64,
     period: f64,
     time_since_periapsis: f64,
@@ -728,7 +723,7 @@ Pos & Vel"
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.name_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {}
+                        if response.changed() {}
 
                         ui.add(egui::Label::new(format!("{}", self.name_str)).monospace());
                     });
@@ -747,8 +742,10 @@ Pos & Vel"
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.distance_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.distance_str.clone() != "" {
                             self.distance = self.distance_str.clone().parse().unwrap();
+                        } else if self.distance_str.clone() == "" {
+                            self.distance = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{} ly", self.distance)).monospace());
@@ -775,9 +772,11 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.right_ascension_h_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.right_ascension_h_str.clone() != "" {
                             self.right_ascension_h =
                                 self.right_ascension_h_str.clone().parse().unwrap();
+                        } else if self.right_ascension_h_str.clone() == "" {
+                            self.right_ascension_h = 0.;
                         }
 
                         ui.add(
@@ -790,9 +789,11 @@ Pos & Vel"
                             &mut self.right_ascension_min_str,
                         ));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.right_ascension_min_str.clone() != "" {
                             self.right_ascension_min =
                                 self.right_ascension_min_str.clone().parse().unwrap();
+                        } else if self.right_ascension_min_str.clone() == "" {
+                            self.right_ascension_min = 0.;
                         }
 
                         ui.add(
@@ -804,9 +805,11 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.right_ascension_s_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.right_ascension_s_str.clone() != "" {
                             self.right_ascension_s =
                                 self.right_ascension_s_str.clone().parse().unwrap();
+                        } else if self.right_ascension_s_str.clone() == "" {
+                            self.right_ascension_s = 0.;
                         }
 
                         ui.add(
@@ -839,9 +842,11 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_degree_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.declination_degree_str.clone() != "" {
                             self.declination_degree =
                                 self.declination_degree_str.clone().parse().unwrap();
+                        } else if self.declination_degree_str.clone() == "" {
+                            self.declination_degree = 0.;
                         }
 
                         ui.add(
@@ -853,9 +858,11 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_min_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.declination_min_str.clone() != "" {
                             self.declination_min =
                                 self.declination_min_str.clone().parse().unwrap();
+                        } else if self.declination_min_str.clone() == "" {
+                            self.declination_min = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{}'", self.declination_min)).monospace());
@@ -865,8 +872,10 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_s_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.declination_s_str.clone() != "" {
                             self.declination_s = self.declination_s_str.clone().parse().unwrap();
+                        } else if self.declination_s_str.clone() == "" {
+                            self.declination_s = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{}''", self.declination_s)).monospace());
@@ -895,9 +904,11 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.radial_velocity_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.radial_velocity_str.clone() != "" {
                             self.radial_velocity =
                                 self.radial_velocity_str.clone().parse().unwrap();
+                        } else if self.radial_velocity_str.clone() == "" {
+                            self.radial_velocity = 0.;
                         }
 
                         ui.add(
@@ -925,9 +936,11 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.proper_motion_ra_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.proper_motion_ra_str.clone() != "" {
                             self.proper_motion_ra =
                                 self.proper_motion_ra_str.clone().parse().unwrap();
+                        } else if self.proper_motion_ra_str.clone() == "" {
+                            self.proper_motion_ra = 0.;
                         }
 
                         ui.add(
@@ -942,9 +955,11 @@ Pos & Vel"
                         let response =
                             ui.add(egui::TextEdit::singleline(&mut self.proper_motion_dec_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.proper_motion_dec_str.clone() != "" {
                             self.proper_motion_dec =
                                 self.proper_motion_dec_str.clone().parse().unwrap();
+                        } else if self.proper_motion_dec_str.clone() == "" {
+                            self.proper_motion_dec = 0.;
                         }
 
                         ui.add(
@@ -965,51 +980,64 @@ Pos & Vel"
                     ui.vertical(|ui| {
                         ui.add(egui::Label::new(format!("Orbital elements")).heading());
 
-                        ui.add(egui::Label::new(format!("Semi-major axis (a in km)")).monospace());
+                        ui.add(egui::Label::new(format!("Semi-major axis (a in au)")).monospace());
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.a = self.a_str.clone().parse().unwrap();
+                        if response.changed() && self.a_str.clone() != "" {
+                            self.a_au = self.a_str.clone().parse().unwrap();
+                        } else if self.a_str.clone() == "" {
+                            self.a_au = 0.;
                         }
 
-                        ui.add(egui::Label::new(format!("{} km", self.a)).monospace());
+                        ui.add(egui::Label::new(format!("{} au", self.a_au)).monospace());
 
-                        ui.label("");
+                        self.a = self.a_au * 149597870.7;
 
                         ui.add(egui::Label::new(format!("Eccentricity (e)")).monospace());
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.e_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.e_str.clone() != "" {
                             self.e = self.e_str.clone().parse().unwrap();
+                        } else if self.e_str.clone() == "" {
+                            self.e = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{}", self.e)).monospace());
-
-                        ui.label("");
 
                         ui.add(egui::Label::new(format!("Period (P in years)")).monospace());
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.period_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.period_str.clone() != "" {
                             self.period = self.period_str.clone().parse().unwrap();
+                        } else if self.period_str.clone() == "" {
+                            self.period = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{} years", self.period)).monospace());
 
-                        ui.label("");
+                        ui.add(
+                            egui::Label::new(format!("Time since periapsis (t in years)"))
+                                .monospace(),
+                        );
 
-                        ui.add(egui::Label::new(format!("Time since periapsis (t in years)")).monospace());
+                        let response = ui.add(egui::TextEdit::singleline(
+                            &mut self.time_since_periapsis_str,
+                        ));
 
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.time_since_periapsis_str));
-
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                            self.time_since_periapsis = self.time_since_periapsis_str.clone().parse().unwrap();
+                        if response.changed() && self.time_since_periapsis_str.clone() != "" {
+                            self.time_since_periapsis =
+                                self.time_since_periapsis_str.clone().parse().unwrap();
+                        } else if self.time_since_periapsis_str.clone() == "" {
+                            self.time_since_periapsis = 0.;
                         }
 
-                        ui.add(egui::Label::new(format!("{} years", self.time_since_periapsis)).monospace());
+                        ui.add(
+                            egui::Label::new(format!("{} years", self.time_since_periapsis))
+                                .monospace(),
+                        );
                     });
                 });
             }
@@ -1029,8 +1057,10 @@ Pos & Vel"
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.lotn_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.lotn_str.clone() != "" {
                             self.lotn = self.lotn_str.clone().parse().unwrap();
+                        } else if self.lotn_str.clone() == "" {
+                            self.lotn = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{} degrees", self.lotn)).monospace());
@@ -1039,8 +1069,10 @@ Pos & Vel"
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.aop_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.aop_str.clone() != "" {
                             self.aop = self.aop_str.clone().parse().unwrap();
+                        } else if self.aop_str.clone() == "" {
+                            self.aop = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{} degrees", self.aop)).monospace());
@@ -1049,8 +1081,10 @@ Pos & Vel"
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.i_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.i_str.clone() != "" {
                             self.i = self.i_str.clone().parse().unwrap();
+                        } else if self.i_str.clone() == "" {
+                            self.i = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{} degrees", self.i)).monospace());
@@ -1070,8 +1104,10 @@ Pos & Vel"
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.pass_mass_str));
 
-                        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+                        if response.changed() && self.pass_mass_str.clone() != "" {
                             self.pass_mass = self.pass_mass_str.clone().parse().unwrap();
+                        } else if self.pass_mass_str.clone() == "" {
+                            self.pass_mass = 0.;
                         }
 
                         ui.add(egui::Label::new(format!("{} kg", self.pass_mass)).monospace());
