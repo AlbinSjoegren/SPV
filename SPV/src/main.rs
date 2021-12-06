@@ -26,17 +26,16 @@ fn pos_vel_relative(
     new_base_y_x: f64,
     new_base_y_y: f64,
     new_base_y_z: f64,
-) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
+) -> (f64, f64, f64, f64, f64, f64, f64) {
     //SI units (meters and seconds)
     let period_si = period * 31557600.;
     let time_since_periapsis_si = time_since_periapsis * 31557600.;
     let a_si = a * 1000.;
-    let n = 20_i32;
     let mean_anom = std::f64::consts::PI * 2. * time_since_periapsis_si / period_si;
     let mut ecc_anom = mean_anom;
 
-    for _i in (0_i32..=n).step_by(1) {
-        ecc_anom = mean_anom + e * ecc_anom.sin();
+    for _i in (0..=20).step_by(1) {
+        ecc_anom = mean_anom + (e * ecc_anom.sin());
     }
 
     //Defining the semi minor axis
@@ -67,12 +66,10 @@ fn pos_vel_relative(
     let b_vel_y = (new_base_x_y * x_v) + (new_base_y_y * y_v);
     let b_vel_z = (new_base_x_z * x_v) + (new_base_y_z * y_v);
 
-    let distance = (x.powf(2.) + y.powf(2.)).sqrt();
-
     let v_deg = v.to_degrees();
 
     return (
-        distance, v_deg, b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
+        v_deg, b_pos_x, b_pos_y, b_pos_z, b_vel_x, b_vel_y, b_vel_z,
     );
 }
 
@@ -165,36 +162,6 @@ fn velocity(
 use egui::{FontDefinitions, FontFamily};
 use serde::{Deserialize, Serialize};
 
-/*
-#[derive(Serialize, Deserialize, Debug)]
-struct Export {
-    name: String,
-    x_pos: f64,
-    y_pos: f64,
-    z_pos: f64,
-    x_vel: f64,
-    y_vel: f64,
-    z_vel: f64,
-    new_base_x_x: f64,
-    new_base_x_y: f64,
-    new_base_x_z: f64,
-    new_base_y_x: f64,
-    new_base_y_y: f64,
-    new_base_y_z: f64,
-    new_base_z_x: f64,
-    new_base_z_y: f64,
-    new_base_z_z: f64,
-    mass: f64,
-    distance: f64,
-    angle: f64,
-    b_pos_x: f64,
-    b_pos_y: f64,
-    b_pos_z: f64,
-    b_vel_x: f64,
-    b_vel_y: f64,
-    b_vel_z: f64,
-}
-*/
 #[derive(Serialize, Deserialize, Debug)]
 struct ExportPos {
     x: f64,
@@ -237,7 +204,6 @@ struct ExportRelVel {
 }
 #[derive(Serialize, Deserialize, Debug)]
 struct ExportRelDebug {
-    distance: f64,
     angle: f64,
 }
 
@@ -264,7 +230,6 @@ fn export_json(
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
-    distance: f64,
     angle: f64,
     b_pos_x: f64,
     b_pos_y: f64,
@@ -273,35 +238,6 @@ fn export_json(
     b_vel_y: f64,
     b_vel_z: f64,
 ) {
-    /*
-    let data = Export {
-        name: name_str,
-        x_pos: x,
-        y_pos: y,
-        z_pos: z,
-        x_vel: x_v,
-        y_vel: y_v,
-        z_vel: z_v,
-        new_base_x_x: new_base_x_x,
-        new_base_x_y: new_base_x_y,
-        new_base_x_z: new_base_x_z,
-        new_base_y_x: new_base_y_x,
-        new_base_y_y: new_base_y_y,
-        new_base_y_z: new_base_y_z,
-        new_base_z_x: new_base_z_x,
-        new_base_z_y: new_base_z_y,
-        new_base_z_z: new_base_z_z,
-        mass: mass,
-        distance: distance,
-        angle: angle,
-        b_pos_x: b_pos_x,
-        b_pos_y: b_pos_y,
-        b_pos_z: b_pos_z,
-        b_vel_x: b_vel_x,
-        b_vel_y: b_vel_y,
-        b_vel_z: b_vel_z,
-    };
-    */
     let pos_data = ExportPos { x: x, y: y, z: z };
     let vel_data = ExportVel {
         x: x_v,
@@ -331,7 +267,6 @@ fn export_json(
         z: b_vel_z,
     };
     let rel_debug_data = ExportRelDebug {
-        distance: distance,
         angle: angle,
     };
 
@@ -426,7 +361,6 @@ fn export_txt(
     new_base_z_y: f64,
     new_base_z_z: f64,
     mass: f64,
-    distance: f64,
     angle: f64,
     b_pos_x: f64,
     b_pos_y: f64,
@@ -435,35 +369,6 @@ fn export_txt(
     b_vel_y: f64,
     b_vel_z: f64,
 ) {
-    /*
-    let data = Export {
-        name: name_str,
-        x_pos: x,
-        y_pos: y,
-        z_pos: z,
-        x_vel: x_v,
-        y_vel: y_v,
-        z_vel: z_v,
-        new_base_x_x: new_base_x_x,
-        new_base_x_y: new_base_x_y,
-        new_base_x_z: new_base_x_z,
-        new_base_y_x: new_base_y_x,
-        new_base_y_y: new_base_y_y,
-        new_base_y_z: new_base_y_z,
-        new_base_z_x: new_base_z_x,
-        new_base_z_y: new_base_z_y,
-        new_base_z_z: new_base_z_z,
-        mass: mass,
-        distance: distance,
-        angle: angle,
-        b_pos_x: b_pos_x,
-        b_pos_y: b_pos_y,
-        b_pos_z: b_pos_z,
-        b_vel_x: b_vel_x,
-        b_vel_y: b_vel_y,
-        b_vel_z: b_vel_z,
-    };
-    */
     let pos_data = ExportPos { x: x, y: y, z: z };
     let vel_data = ExportVel {
         x: x_v,
@@ -493,7 +398,6 @@ fn export_txt(
         z: b_vel_z,
     };
     let rel_debug_data = ExportRelDebug {
-        distance: distance,
         angle: angle,
     };
 
@@ -664,7 +568,6 @@ pub struct Canvas {
 
     pass_mass_str: String,
 
-    distance_btob: f64,
     angle: f64,
     b_pos_x: f64,
     b_pos_y: f64,
@@ -1184,19 +1087,6 @@ Pos & Vel"
             if self.results_toggle == true {
                 ui.vertical(|_ui| {
                     results_window.show(ctx, |ui| {
-                        self.distance_btob = pos_vel_relative(
-                            self.a.clone(),
-                            self.e.clone(),
-                            self.period.clone(),
-                            self.time_since_periapsis.clone(),
-                            self.new_base_x_x.clone(),
-                            self.new_base_x_y.clone(),
-                            self.new_base_x_z.clone(),
-                            self.new_base_y_x.clone(),
-                            self.new_base_y_y.clone(),
-                            self.new_base_y_z.clone(),
-                        )
-                        .0;
                         self.angle = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1209,7 +1099,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .1;
+                        .0;
                         self.b_pos_x = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1222,7 +1112,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .2;
+                        .1;
                         self.b_pos_y = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1235,7 +1125,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .3;
+                        .2;
                         self.b_pos_z = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1248,7 +1138,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .4;
+                        .3;
                         self.b_vel_x = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1261,7 +1151,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .5;
+                        .4;
                         self.b_vel_y = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1274,7 +1164,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .6;
+                        .5;
                         self.b_vel_z = pos_vel_relative(
                             self.a.clone(),
                             self.e.clone(),
@@ -1287,7 +1177,7 @@ Pos & Vel"
                             self.new_base_y_y.clone(),
                             self.new_base_y_z.clone(),
                         )
-                        .7;
+                        .6;
 
                         self.x = position(
                             self.distance_km.clone(),
@@ -1408,15 +1298,6 @@ Pos & Vel"
                             .monospace(),
                         );
 
-                        ui.add(
-                            egui::Label::new(format!("Distance from new B to old B (m)")).heading(),
-                        );
-
-                        ui.add(
-                            egui::Label::new(format!("distance = {} m", self.distance_btob))
-                                .monospace(),
-                        );
-
                         ui.add(egui::Label::new(format!("Angle (degrees)")).heading());
 
                         ui.add(egui::Label::new(format!("v = {} degrees", self.angle)).monospace());
@@ -1485,7 +1366,6 @@ Pos & Vel"
                                     self.new_base_z_y,
                                     self.new_base_z_z,
                                     self.pass_mass,
-                                    self.distance_btob,
                                     self.angle,
                                     self.b_pos_x,
                                     self.b_pos_y,
@@ -1515,7 +1395,6 @@ Pos & Vel"
                                     self.new_base_z_y,
                                     self.new_base_z_z,
                                     self.pass_mass,
-                                    self.distance_btob,
                                     self.angle,
                                     self.b_pos_x,
                                     self.b_pos_y,
