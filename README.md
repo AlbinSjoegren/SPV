@@ -1,6 +1,9 @@
 # SPV
 
 [![Rust](https://github.com/AlbinSjoegren/SPV/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/AlbinSjoegren/SPV/actions/workflows/rust.yml)
+![License](https://img.shields.io/github/license/AlbinSjoegren/SPV)
+![Downloads](https://img.shields.io/github/downloads/AlbinSjoegren/SPV/total)
+![Discord](https://img.shields.io/discord/831904736219365417)
 
 Calculates a stars position and velocity in the cartesian coordinate system.
 
