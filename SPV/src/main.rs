@@ -499,6 +499,10 @@ pub struct Canvas {
     distance_km: f64, //In km
     distance_str: String,
 
+    distance2: f64, //In Arcsecons
+    distance_parsec: f64,
+    distance_str2: String,
+
     declination: f64, //degrees
 
     declination_degree: f64, //In Degreees
@@ -549,7 +553,7 @@ pub struct Canvas {
     new_base_z_z: f64,
 
     a: f64,
-    a_au: f64,
+    a_arcsec: f64,
     e: f64,
     period: f64,
     time_since_periapsis: f64,
@@ -577,6 +581,8 @@ pub struct Canvas {
     export_toggle: bool,
     passtrough_toggle: bool,
     results_toggle: bool,
+
+    au_arcsec_toggle: bool,
 }
 
 impl epi::App for Canvas {
@@ -978,21 +984,74 @@ Pos & Vel"
             if self.rel_pos_vel_toggle == true {
                 rel_pos_vel_window.show(ctx, |ui| {
                     ui.vertical(|ui| {
-                        ui.add(egui::Label::new(format!("Orbital elements")).heading());
+                        ui.add(
+                            egui::Label::new(format!("Distance (parallax in milliarcseconds)"))
+                                .heading(),
+                        );
 
-                        ui.add(egui::Label::new(format!("Semi-major axis (a in au)")).monospace());
+                        let response = ui.add(egui::TextEdit::singleline(&mut self.distance_str2));
 
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-
-                        if response.changed() && self.a_str.clone() != "" {
-                            self.a_au = self.a_str.clone().parse().unwrap();
-                        } else if self.a_str.clone() == "" {
-                            self.a_au = 0.;
+                        if response.changed() && self.distance_str2.clone() != "" {
+                            self.distance2 = self.distance_str2.clone().parse().unwrap();
+                        } else if self.distance_str2.clone() == "" {
+                            self.distance2 = 0.;
                         }
 
-                        ui.add(egui::Label::new(format!("{} au", self.a_au)).monospace());
+                        ui.add(
+                            egui::Label::new(format!("{} milliarcseconds", self.distance2))
+                                .monospace(),
+                        );
 
-                        self.a = self.a_au * 149597870.7;
+                        self.distance_parsec = 1. / (self.distance2 / 1000.);
+
+                        ui.add(
+                            egui::Label::new(format!("{} parsec", self.distance_parsec))
+                                .monospace(),
+                        );
+
+                        ui.add(egui::Label::new(format!("Orbital elements")).heading());
+
+                        ui.add(egui::Label::new(format!("Semi-major axis (a)")).monospace());
+
+                        ui.horizontal(|ui| {
+                            if ui.add(egui::Button::new("au")).clicked() {
+                                self.au_arcsec_toggle = true;
+                            }
+                            if ui.add(egui::Button::new("arcseconds")).clicked() {
+                                self.au_arcsec_toggle = false;
+                            }
+                        });
+
+                        if self.au_arcsec_toggle == true {
+                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
+
+                            if response.changed() && self.a_str.clone() != "" {
+                                self.a_arcsec = self.a_str.clone().parse().unwrap();
+                            } else if self.a_str.clone() == "" {
+                                self.a_arcsec = 0.;
+                            }
+
+                            ui.add(egui::Label::new(format!("{} au", self.a_arcsec)).monospace());
+
+                            self.a = self.a_arcsec * 149597870.7;
+                        }
+
+                        if self.au_arcsec_toggle == false {
+                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
+
+                            if response.changed() && self.a_str.clone() != "" {
+                                self.a_arcsec = self.a_str.clone().parse().unwrap();
+                            } else if self.a_str.clone() == "" {
+                                self.a_arcsec = 0.;
+                            }
+
+                            ui.add(
+                                egui::Label::new(format!("{} arcseconds", self.a_arcsec))
+                                    .monospace(),
+                            );
+
+                            self.a = self.a_arcsec * self.distance_parsec * 149597870.7;
+                        }
 
                         ui.add(egui::Label::new(format!("Eccentricity (e)")).monospace());
 
@@ -1100,7 +1159,7 @@ Pos & Vel"
             if self.passtrough_toggle == true {
                 ui.vertical(|_ui| {
                     passtrough_window.show(ctx, |ui| {
-                        ui.add(egui::Label::new(format!("Mass (kg)")).monospace());
+                        ui.add(egui::Label::new(format!("Mass (Solar masses)")).monospace());
 
                         let response = ui.add(egui::TextEdit::singleline(&mut self.pass_mass_str));
 
@@ -1110,7 +1169,10 @@ Pos & Vel"
                             self.pass_mass = 0.;
                         }
 
-                        ui.add(egui::Label::new(format!("{} kg", self.pass_mass)).monospace());
+                        ui.add(
+                            egui::Label::new(format!("{} Solar masses", self.pass_mass))
+                                .monospace(),
+                        );
                     });
                 });
             }
