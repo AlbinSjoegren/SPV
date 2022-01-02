@@ -1,6 +1,6 @@
 [package]
 name = "spv"
-version = "0.3.7"
+version = "0.3.8"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
 description = "Calculates a stars position and velocity in the cartesian coordinate system."
@@ -8,8 +8,8 @@ description = "Calculates a stars position and velocity in the cartesian coordin
 
 [dependencies]
 vec3 = "0.2.1"
-egui = "0.15.0" 
-eframe = "0.15.0"
+egui = "0.16.1" 
+eframe = "0.16.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 image = "0.23.14"

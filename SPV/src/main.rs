@@ -595,7 +595,7 @@ impl epi::App for Canvas {
     fn setup(
         &mut self,
         ctx: &egui::CtxRef,
-        frame: &mut epi::Frame<'_>,
+        frame: &epi::Frame,
         storage: Option<&dyn epi::Storage>,
     ) {
         #[cfg(feature = "persistence")]
@@ -634,6 +634,8 @@ impl epi::App for Canvas {
 
         style.visuals.widgets.open.bg_fill = egui::Color32::from_rgb(45, 51, 59);
 
+        style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke{width: 10.0, color: egui::Color32::from_rgb(173, 186, 199)};
+
         ctx.set_style(style);
 
         let font_droidsansmono = include_bytes!("data/Droid Sans Mono Nerd Font Complete Mono.otf");
@@ -641,7 +643,7 @@ impl epi::App for Canvas {
 
         font.font_data.insert(
             "Droid Sans Mono".to_string(),
-            Cow::from(&font_droidsansmono[..]),
+            egui::FontData{ font: Cow::from(&font_droidsansmono[..]), index: 0 },
         );
         font.fonts_for_family
             .insert(FontFamily::Monospace, vec!["Droid Sans Mono".to_string()]);
@@ -677,7 +679,7 @@ impl epi::App for Canvas {
         return true;
     }
 
-    fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
+    fn update(&mut self, ctx: &egui::CtxRef, _frame: &epi::Frame) {
         egui::SidePanel::left("Tabs").show(ctx, |ui| {
             if ui.add(egui::Button::new(format!("General"))).clicked() {
                 self.general_toggle = !self.general_toggle
