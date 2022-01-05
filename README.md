@@ -7,7 +7,7 @@
 
 Calculates a stars position and velocity in the cartesian coordinate system.
 
-![Screenshot_20211208_210737](https://user-images.githubusercontent.com/23136737/145276963-8cfdcb37-4548-48f3-86a1-54cffc08bace.png)
+![Screenshot from 2022-01-05 11-30-22](https://user-images.githubusercontent.com/23136737/148202851-88c5abf4-6d99-40d1-bfc5-8ae001f04017.png)
 
 ## Building and running
 
