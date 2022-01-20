@@ -11,6 +11,8 @@
 
 Calculates a stars position and velocity in the cartesian coordinate system.
 
+https://youtu.be/dsc2zcIbCNQ
+
 ![Screenshot from 2022-01-05 11-30-22](https://user-images.githubusercontent.com/23136737/148202851-88c5abf4-6d99-40d1-bfc5-8ae001f04017.png)
 
 ## Building and running
