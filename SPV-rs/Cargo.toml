@@ -1,0 +1,8 @@
+[package]
+name = "spv-rs"
+version = "0.1.0"
+authors = ["Albin Sjögren <albin@sjoegren.se>"]
+edition = "2021"
+
+[dependencies]
+glam = "0.20.2"
