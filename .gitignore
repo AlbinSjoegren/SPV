@@ -1,5 +1,4 @@
 target
 Cargo.lock
-spv-*
 *.nc
 *.DS_store
