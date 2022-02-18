@@ -9,6 +9,10 @@ homepage = "https://github.com/AlbinSjoegren/SPV"
 repository = "https://github.com/AlbinSjoegren/SPV"
 readme = "../README.md"
 keywords = ["astronomy", "math", "position", "velocity"]
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
 
 [dependencies]
 glam = "0.20.2"
