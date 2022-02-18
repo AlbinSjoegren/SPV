@@ -3,6 +3,12 @@ name = "spv-rs"
 version = "0.3.9"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
+license = "GPL-3.0"
+description = "Math utility for astronomical data"
+homepage = "https://github.com/AlbinSjoegren/SPV"
+repository = "https://github.com/AlbinSjoegren/SPV"
+readme = "../README.md"
+keywords = ["astronomy", "math", "position", "velocity"]
 
 [dependencies]
 glam = "0.20.2"
