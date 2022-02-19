@@ -1,22 +1,18 @@
 [package]
 name = "spv"
-version = "0.3.10"
+version = "0.4.0"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
+license = "GPL-3.0"
 description = "Calculates a stars position and velocity in the cartesian coordinate system."
 
 
 [dependencies]
+spv-rs = "0.3.10"
+glam = "0.20.2"
 vec3 = "0.2.1"
 egui = "0.16.1" 
 eframe = "0.16.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 image = "0.23.14"
-
-[package.metadata.bundle]
-name = "SPV"
-short_description = "Calculates a stars position and velocity in the cartesian coordinate system."
-icon = ["icon.png"]
-
-[package.metadata.appimage]

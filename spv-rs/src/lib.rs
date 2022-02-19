@@ -231,7 +231,9 @@ pub fn velocity(
 ) -> DVec3 {
     let distance = 1. / (parallax / 1000.);
 
+    //SI
     let distnace_si = distance * (3.0856778570831 * 10_f64.powf(16.));
+    let radial_velocity_si = radial_velocity * 1000.;
 
     let proper_motion_x = distnace_si
         * (((right_ascension + ((proper_motion_ra * 0.00027777777777778) / 31556926.))
@@ -268,9 +270,9 @@ pub fn velocity(
     let normalized_vector_y = y / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
     let normalized_vector_z = z / (x.powf(2.) + y.powf(2.) + z.powf(2.)).sqrt();
 
-    let radial_velocity_vector_x = normalized_vector_x * radial_velocity;
-    let radial_velocity_vector_y = normalized_vector_y * radial_velocity;
-    let radial_velocity_vector_z = normalized_vector_z * radial_velocity;
+    let radial_velocity_vector_x = normalized_vector_x * radial_velocity_si;
+    let radial_velocity_vector_y = normalized_vector_y * radial_velocity_si;
+    let radial_velocity_vector_z = normalized_vector_z * radial_velocity_si;
 
     let x_v = radial_velocity_vector_x + proper_motion_vector_x;
     let y_v = radial_velocity_vector_y + proper_motion_vector_y;
