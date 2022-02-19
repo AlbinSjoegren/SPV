@@ -173,6 +173,20 @@ pub fn position(parallax: f64, right_ascension: f64, declination: f64) -> DVec3 
     DVec3::new(x, y, z)
 }
 
+/// Position on the surface of a sphere with radius in meters.
+pub fn position_surface(radius: f64, right_ascension: f64, declination: f64) -> DVec3 {
+    let right_ascension_rad = right_ascension.to_radians();
+    let declination_rad = (declination + 90.).to_radians();
+
+    let x = radius * right_ascension_rad.cos() * declination_rad.sin();
+
+    let y = radius * right_ascension_rad.sin() * declination_rad.sin();
+
+    let z = radius * declination_rad.cos();
+
+    DVec3::new(x, y, z)
+}
+
 /// Velocity of a single celestial object relative to the sun.
 /// Can be used in conjuction with companion functions to place a twobody system relative to the sun.
 /// parallax is in mas (milliarcseconds), right_ascension is in degrees and declination in degrees,
@@ -408,3 +422,55 @@ pub fn standard_gravitational_parameter(a: f64, e: f64) -> f64 {
 
     ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (p_si.powf(2.))
 }
+
+/// Specific mechanical energy (used by other equation but exposed here if you need it)
+pub fn specific_mechanical_energy(a: f64, e: f64) -> f64 {
+    let mu = standard_gravitational_parameter(a, e);
+
+    0. - (mu / (2. * a))
+}
+
+/// If you dind't have the period already
+pub fn period(a: f64, e: f64) -> f64 {
+    let mu = standard_gravitational_parameter(a, e);
+
+    2. * std::f64::consts::PI * (((a.powf(3.)) / mu).sqrt())
+}
+
+/// If you for some reason had these parameters and not a then here ya go
+pub fn semi_major_axis(standard_gravitational_parameter: f64, specific_mechanical_energy: f64) -> f64 {
+    0. - (standard_gravitational_parameter / (2. * specific_mechanical_energy))
+}
+
+/// Mean motion or n
+pub fn mean_motion(a: f64, e: f64) -> f64 {
+    let mu = standard_gravitational_parameter(a, e);
+
+    (mu / (a.powf(3.))).sqrt()
+}
+
+/// If you for some reason had these parameters and not e then here ya go
+pub fn eccentricity(standard_gravitational_parameter: f64, specific_mechanical_energy: f64, specific_angular_momentum_value: f64) -> f64 {
+    (1. - ((2. * specific_mechanical_energy * (specific_angular_momentum_value.powf(2.))) / (standard_gravitational_parameter.powf(2.)))).sqrt()
+}
+
+/// Just the companion velocity but as a value and not coordinates 
+pub fn companion_velocity_value(a: f64, e: f64, period: f64, t_p: f64) -> f64 {
+    let mu = standard_gravitational_parameter(a, e);
+    let epsilon = specific_mechanical_energy(a, e);
+    let r = radius(a, e, period, t_p);
+
+    (2. * ((mu / r) + epsilon)).sqrt()
+}
+
+/// Distance between one foci and the center of the ellipse
+pub fn linear_eccentricity(a: f64, e: f64) -> f64 {
+    a * e
+}
+
+/// Flattening is another way to explain what eccentricity does for an ellipse 
+pub fn flattening(a: f64, e: f64) -> f64 {
+    let b = semi_minor_axis(a, e);
+
+    (a - b) / a
+} 
