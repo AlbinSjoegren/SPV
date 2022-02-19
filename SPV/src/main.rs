@@ -498,6 +498,27 @@ relative velocity",
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+                if ui.add(egui::Button::new("Clear")).clicked() {
+                    self.name_str = "".to_string();
+                    self.parallax_str = "".to_string();
+                    self.declination_degree_str = "".to_string();
+                    self.declination_min_str = "".to_string();
+                    self.declination_s_str = "".to_string();
+                    self.right_ascension_h_str = "".to_string();
+                    self.right_ascension_min_str = "".to_string();
+                    self.right_ascension_s_str = "".to_string();
+                    self.radial_velocity_str = "".to_string();
+                    self.proper_motion_ra_str = "".to_string();
+                    self.proper_motion_dec_str = "".to_string();
+                    self.lotn_str = "".to_string();
+                    self.aop_str = "".to_string();
+                    self.i_str = "".to_string();
+                    self.a_str = "".to_string();
+                    self.e_str = "".to_string();
+                    self.period_str = "".to_string();
+                    self.time_since_periapsis_str = "".to_string();
+                }
+
                 if ui.add(egui::Button::new("Organize")).clicked() {
                     ui.ctx().memory().reset_areas();
                 }
