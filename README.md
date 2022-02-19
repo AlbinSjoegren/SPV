@@ -12,8 +12,12 @@
 
 Calculates a stars position and velocity in the cartesian coordinate system.
 
-https://youtu.be/dsc2zcIbCNQ
+[An informal introduction to SPV](https://youtu.be/dsc2zcIbCNQ) (video)
 
 
-(GUI version)
-![Screenshot from 2022-01-05 11-30-22](https://user-images.githubusercontent.com/23136737/148202851-88c5abf4-6d99-40d1-bfc5-8ae001f04017.png)
+You can treat the gui version seen below as an example on how to use `spv-rs`
+
+![Position Velocity](https://user-images.githubusercontent.com/23136737/154776659-43b49951-a8ba-4f03-8489-c90f6d45cb0c.png)
+![EulerAngleTransformations](https://user-images.githubusercontent.com/23136737/154776666-919ed703-0cd7-4c9c-a682-e3148b9cded5.png)
+![CompanionPosition Velocity](https://user-images.githubusercontent.com/23136737/154776700-3b533f21-04fc-489d-9bca-be83370ad31d.png)
+![CompanionRelativePosition Velocity](https://user-images.githubusercontent.com/23136737/154776703-f88e4f59-26c8-41e9-8741-015b7006aed2.png)
