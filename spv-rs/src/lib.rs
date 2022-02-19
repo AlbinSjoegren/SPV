@@ -1,5 +1,9 @@
 use glam::f64::{DMat3, DVec2, DVec3};
 
+/// Position of the companion star in a twobody system with rotation relative to the earth/sun plane applied.
+/// a is semi major-axis in au, e is eccentricity, period is in years, t_p is time since periastron in years,
+/// lotn is Longitude of the node (Omega) in degrees, aop is Argument of periastron (omega) in degrees and finally i is the Inclination in degrees.
+/// Output is a 3-dimensional vector with x, y and z in that order all in meters.
 pub fn companion_relative_position(
     a: f64,
     e: f64,
@@ -9,44 +13,23 @@ pub fn companion_relative_position(
     aop: f64,
     i: f64,
 ) -> DVec3 {
-    //SI units
-    let p_si = period * 31557600.;
-    let t_p_si = t_p * 31557600.;
-    let a_si = a * 1000.;
-
-    //In rad
-    let lotn_rad = lotn.to_radians();
-    let aop_rad = aop.to_radians();
-    let i_rad = i.to_radians();
-
-    //Defining angles
-    let mean_anom = std::f64::consts::PI * 2. * t_p_si / p_si;
-    let mut ecc_anom = mean_anom;
-    for _i in (0..=20).step_by(1) {
-        ecc_anom = mean_anom + (e * ecc_anom.sin());
-    }
-
-    //Defining the semi minor-axis
-    let b_si = a_si * ((1. - e.powf(2.)).sqrt());
-
     //Prep Values
-    let p = (b_si.powf(2.)) / a_si;
-    let v = 2. * (((1. + e) / (1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
+    let p = semi_parameter(a, e);
+    let v = true_anomaly(e, period, t_p);
 
     //Position of Companion in ellipse base
     let x = (p * v.cos()) / (1. + e * v.cos());
     let y = (p * v.sin()) / (1. + e * v.cos());
 
     //Ellipse base
-    let x1 = (lotn_rad.cos() * aop_rad.cos()) - (lotn_rad.sin() * i_rad.cos() * aop_rad.sin());
-    let x2 = (lotn_rad.sin() * aop_rad.cos()) + (lotn_rad.cos() * i_rad.cos() * aop_rad.sin());
-    let x3 = i_rad.sin() * aop_rad.sin();
+    let euler_angle_transformations = euler_angle_transformations(lotn, aop, i).to_cols_array();
+    let x1 = euler_angle_transformations[0];
+    let x2 = euler_angle_transformations[1];
+    let x3 = euler_angle_transformations[2];
 
-    let y1 =
-        ((0. - lotn_rad.cos()) * aop_rad.sin()) - (lotn_rad.sin() * i_rad.cos() * aop_rad.cos());
-    let y2 =
-        ((0. - lotn_rad.sin()) * aop_rad.sin()) + (lotn_rad.cos() * i_rad.cos() * aop_rad.cos());
-    let y3 = i_rad.sin() * aop_rad.cos();
+    let y1 = euler_angle_transformations[3];
+    let y2 = euler_angle_transformations[4];
+    let y3 = euler_angle_transformations[5];
 
     //Position in original base
     let companion_position_x = (x1 * x) + (y1 * y);
@@ -60,6 +43,10 @@ pub fn companion_relative_position(
     )
 }
 
+/// Velocity of the companion star in a twobody system with rotation relative to the earth/sun plane applied.
+/// a is semi major-axis in au, e is eccentricity, period is in years, t_p is time since periastron in years,
+/// lotn is Longitude of the node (Omega) in degrees, aop is Argument of periastron (omega) in degrees and finally i is the Inclination in degrees.
+/// Output is a 3-dimensional vector with x, y and z in that order all in meters/second.
 pub fn companion_relative_velocity(
     a: f64,
     e: f64,
@@ -69,45 +56,24 @@ pub fn companion_relative_velocity(
     aop: f64,
     i: f64,
 ) -> DVec3 {
-    //SI units
-    let p_si = period * 31557600.;
-    let t_p_si = t_p * 31557600.;
-    let a_si = a * 1000.;
-
-    //In rad
-    let lotn_rad = lotn.to_radians();
-    let aop_rad = aop.to_radians();
-    let i_rad = i.to_radians();
-
-    //Defining angles
-    let mean_anom = std::f64::consts::PI * 2. * t_p_si / p_si;
-    let mut ecc_anom = mean_anom;
-    for _i in (0..=20).step_by(1) {
-        ecc_anom = mean_anom + (e * ecc_anom.sin());
-    }
-
-    //Defining the semi minor-axis
-    let b_si = a_si * ((1. - e.powf(2.)).sqrt());
-
     //Prep Values
-    let mu = ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (p_si.powf(2.));
-    let p = (b_si.powf(2.)) / a_si;
-    let v = 2. * (((1. + e) / (1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
+    let mu = standard_gravitational_parameter(a, e);
+    let p = semi_parameter(a, e);
+    let v = true_anomaly(e, period, t_p);
 
     //Velocity of Companion in ellipse base
     let x_v = (0. - ((mu / p).sqrt())) * (v.sin());
     let y_v = ((mu / p).sqrt()) * (e + (v.cos()));
 
     //Ellipse base
-    let x1 = (lotn_rad.cos() * aop_rad.cos()) - (lotn_rad.sin() * i_rad.cos() * aop_rad.sin());
-    let x2 = (lotn_rad.sin() * aop_rad.cos()) + (lotn_rad.cos() * i_rad.cos() * aop_rad.sin());
-    let x3 = i_rad.sin() * aop_rad.sin();
+    let euler_angle_transformations = euler_angle_transformations(lotn, aop, i).to_cols_array();
+    let x1 = euler_angle_transformations[0];
+    let x2 = euler_angle_transformations[1];
+    let x3 = euler_angle_transformations[2];
 
-    let y1 =
-        ((0. - lotn_rad.cos()) * aop_rad.sin()) - (lotn_rad.sin() * i_rad.cos() * aop_rad.cos());
-    let y2 =
-        ((0. - lotn_rad.sin()) * aop_rad.sin()) + (lotn_rad.cos() * i_rad.cos() * aop_rad.cos());
-    let y3 = i_rad.sin() * aop_rad.cos();
+    let y1 = euler_angle_transformations[3];
+    let y2 = euler_angle_transformations[4];
+    let y3 = euler_angle_transformations[5];
 
     //Velocity in original base
     let companion_velocity_x = (x1 * x_v) + (y1 * y_v);
@@ -121,25 +87,14 @@ pub fn companion_relative_velocity(
     )
 }
 
+/// Position of the companion star in a twobody system with no rotation applied.
+/// a is semi major-axis in au, e is eccentricity, period is in years and t_p is time since periastron in years.
+/// Output is a 2-dimensional vector with x and y in that order all in meters. We only need a 2-dimensional vector here
+/// due to the fact that everything is on a plane in 2D.
 pub fn companion_position(a: f64, e: f64, period: f64, t_p: f64) -> DVec2 {
-    //SI units
-    let p_si = period * 31557600.;
-    let t_p_si = t_p * 31557600.;
-    let a_si = a * 1000.;
-
-    //Defining angles
-    let mean_anom = std::f64::consts::PI * 2. * t_p_si / p_si;
-    let mut ecc_anom = mean_anom;
-    for _i in (0..=20).step_by(1) {
-        ecc_anom = mean_anom + (e * ecc_anom.sin());
-    }
-
-    //Defining the semi minor-axis
-    let b_si = a_si * ((1. - e.powf(2.)).sqrt());
-
     //Prep Values
-    let p = (b_si.powf(2.)) / a_si;
-    let v = 2. * (((1. + e) / (1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
+    let p = semi_parameter(a, e);
+    let v = true_anomaly(e, period, t_p);
 
     //Position of Companion in ellipse base
     let x = (p * v.cos()) / (1. + e * v.cos());
@@ -148,26 +103,15 @@ pub fn companion_position(a: f64, e: f64, period: f64, t_p: f64) -> DVec2 {
     DVec2::new(x, y)
 }
 
+/// Velocity of the companion star in a twobody system with no rotation applied.
+/// a is semi major-axis in au, e is eccentricity, period is in years and t_p is time since periastron in years.
+/// Output is a 2-dimensional vector with x and y in that order all in meters/second. We only need a 2-dimensional vector here
+/// due to the fact that everything is on a plane in 2D.
 pub fn companion_velocity(a: f64, e: f64, period: f64, t_p: f64) -> DVec2 {
-    //SI units
-    let p_si = period * 31557600.;
-    let t_p_si = t_p * 31557600.;
-    let a_si = a * 1000.;
-
-    //Defining angles
-    let mean_anom = std::f64::consts::PI * 2. * t_p_si / p_si;
-    let mut ecc_anom = mean_anom;
-    for _i in (0..=20).step_by(1) {
-        ecc_anom = mean_anom + (e * ecc_anom.sin());
-    }
-
-    //Defining the semi minor-axis
-    let b_si = a_si * ((1. - e.powf(2.)).sqrt());
-
     //Prep Values
-    let mu = ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (p_si.powf(2.));
-    let p = (b_si.powf(2.)) / a_si;
-    let v = 2. * (((1. + e) / (1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan();
+    let mu = standard_gravitational_parameter(a, e);
+    let p = semi_parameter(a, e);
+    let v = true_anomaly(e, period, t_p);
 
     //Velocity of Companion in ellipse base
     let x_v = (0. - ((mu / p).sqrt())) * (v.sin());
@@ -176,6 +120,10 @@ pub fn companion_velocity(a: f64, e: f64, period: f64, t_p: f64) -> DVec2 {
     DVec2::new(x_v, y_v)
 }
 
+/// Method for getting base manipulation matrix that is used to rotate the companion star in a twobody system
+/// relative to the earth/sun plane.
+/// lotn is Longitude of the node (Omega) in degrees, aop is Argument of periastron (omega) in degrees and finally i is the Inclination in degrees.
+/// Output is a 3-dimensional matrix with x1, x2 and x3 in the first collum, y1, y2 and y3 in the second collum and z1, z2 and z3 in the third collum.
 pub fn euler_angle_transformations(lotn: f64, aop: f64, i: f64) -> DMat3 {
     //In rad
     let lotn_rad = lotn.to_radians();
@@ -204,6 +152,10 @@ pub fn euler_angle_transformations(lotn: f64, aop: f64, i: f64) -> DMat3 {
     )
 }
 
+/// Position of a single celestial object relative to the sun.
+/// Can be used in conjuction with companion functions to place a twobody system relative to the sun.
+/// parallax is in mas (milliarcseconds), right_ascension is in degrees and declination in degrees.
+/// Output is a 3-dimensional vector with x, y and z in that order all in meters.
 pub fn position(parallax: f64, right_ascension: f64, declination: f64) -> DVec3 {
     let distance = 1. / (parallax / 1000.);
 
@@ -221,6 +173,13 @@ pub fn position(parallax: f64, right_ascension: f64, declination: f64) -> DVec3 
     DVec3::new(x, y, z)
 }
 
+/// Velocity of a single celestial object relative to the sun.
+/// Can be used in conjuction with companion functions to place a twobody system relative to the sun.
+/// parallax is in mas (milliarcseconds), right_ascension is in degrees and declination in degrees,
+/// proper_motion_ra is the right ascension part of the proper motion variable in as (arcseconds),
+/// proper_motion_dec is the declination part of the proper motion variable in as (arcseconds) and
+/// radial_velocity is in km/s.
+/// Output is a 3-dimensional vector with x, y and z in that order all in meters/second.
 pub fn velocity(
     parallax: f64,
     right_ascension: f64,
@@ -279,4 +238,173 @@ pub fn velocity(
     let z_v = radial_velocity_vector_z + proper_motion_vector_z;
 
     DVec3::new(x_v, y_v, z_v)
+}
+
+/// Takes a in as (arcseconds) and parllax in mas (milliarcsecond) and outputs a in au.
+pub fn a_to_au(parallax: f64, a: f64) -> f64 {
+    let distance_parsec = 1. / (parallax / 1000.);
+    a * distance_parsec * 149597870.7
+}
+
+/// Calculates total declination in degrees with declination_degree, declination_min and declination_s in degrees, minutes and seconds respectively.
+pub fn declination_total(declination_degree: f64, declination_min: f64, declination_s: f64) -> f64 {
+    declination_degree + (declination_min / 60.) + (declination_s / 3600.)
+}
+
+/// Calculates total right ascension in degrees with right_ascension_h, right_ascension_min and right_ascension_s in hours, minutes and seconds respectively.
+pub fn right_ascension_total(
+    right_ascension_h: f64,
+    right_ascension_min: f64,
+    right_ascension_s: f64,
+) -> f64 {
+    (right_ascension_h * 15.)
+        + (right_ascension_min * (1. / 4.))
+        + (right_ascension_s * (1. / 240.))
+}
+
+/// Calculates r min or the minimum distance between the primary and companion boides in a twobody system also known as perigee
+/// (suffix may change depending on what object it reffers to).
+/// Output is just the x coordinate in the ellipses plane.
+pub fn perigee(a: f64, e: f64) -> f64 {
+    a * (1. - e)
+}
+
+/// Calculates r max or the maximum distance between the primary and companion boides in a twobody system also known as apogee
+/// (suffix may change depending on what object it reffers to).
+/// Output is just the x coordinate in the ellipses plane.
+pub fn apogee(a: f64, e: f64) -> f64 {
+    a * (1. + e)
+}
+
+/// Calculates r min or the minimum distance between the primary and companion boides in a twobody system also known as perigee
+/// (suffix may change depending on what object it reffers to).
+/// Output is 3-dimensional vector that represents the coordinates for perigee rotated to be relative to the earth/sun plane.
+pub fn relative_perigee(a: f64, e: f64, lotn: f64, aop: f64, i: f64) -> DVec3 {
+    let x = a * (1. - e);
+
+    let euler_angle_transformations = euler_angle_transformations(lotn, aop, i).to_cols_array();
+    let x1 = euler_angle_transformations[0];
+    let x2 = euler_angle_transformations[1];
+    let x3 = euler_angle_transformations[2];
+
+    DVec3::new(x * x1, x * x2, x * x3)
+}
+
+/// Calculates r max or the maximum distance between the primary and companion boides in a twobody system also known as apogee
+/// (suffix may change depending on what object it reffers to).
+/// Output is 3-dimensional vector that represents the coordinates for apogee rotated to be relative to the earth/sun plane.
+pub fn relative_apogee(a: f64, e: f64, lotn: f64, aop: f64, i: f64) -> DVec3 {
+    let x = a * (1. + e);
+
+    let euler_angle_transformations = euler_angle_transformations(lotn, aop, i).to_cols_array();
+    let x1 = euler_angle_transformations[0];
+    let x2 = euler_angle_transformations[1];
+    let x3 = euler_angle_transformations[2];
+
+    DVec3::new(x * x1, x * x2, x * x3)
+}
+
+/// Calculates the eccentric anomaly in degrees
+pub fn eccentric_anomaly(e: f64, period: f64, t_p: f64) -> f64 {
+    //SI units
+    let p_si = period * 31557600.;
+    let t_p_si = t_p * 31557600.;
+
+    //Defining angles
+    let mean_anom = std::f64::consts::PI * 2. * t_p_si / p_si;
+    let mut ecc_anom = mean_anom;
+    for _i in (0..=20).step_by(1) {
+        ecc_anom = mean_anom + (e * ecc_anom.sin());
+    }
+
+    ecc_anom
+}
+
+/// Calculates the true anomaly in degrees
+pub fn true_anomaly(e: f64, period: f64, t_p: f64) -> f64 {
+    //SI units
+    let p_si = period * 31557600.;
+    let t_p_si = t_p * 31557600.;
+
+    //Defining angles
+    let mean_anom = std::f64::consts::PI * 2. * t_p_si / p_si;
+    let mut ecc_anom = mean_anom;
+    for _i in (0..=20).step_by(1) {
+        ecc_anom = mean_anom + (e * ecc_anom.sin());
+    }
+
+    2. * (((1. + e) / (1. - e)).sqrt() * (ecc_anom * 0.5).tan()).atan()
+}
+
+/// Calculates the flight path angle for the companion body in degrees
+pub fn flight_path_angle(e: f64, period: f64, t_p: f64) -> f64 {
+    //SI units
+    let p_si = period * 31557600.;
+    let t_p_si = t_p * 31557600.;
+
+    //Defining angles
+    let mean_anom = std::f64::consts::PI * 2. * t_p_si / p_si;
+    let mut ecc_anom = mean_anom;
+    for _i in (0..=20).step_by(1) {
+        ecc_anom = mean_anom + (e * ecc_anom.sin());
+    }
+
+    ((e * ecc_anom.sin()) / ((1. - ((e.powf(2.)) * (ecc_anom.cos().powf(2.)))).sqrt()))
+        .asin()
+        .to_degrees()
+}
+
+/// Calculates the semi parameter for a twobody system
+pub fn semi_parameter(a: f64, e: f64) -> f64 {
+    let a_si = a * 1000.;
+    let b_si = semi_minor_axis(a, e);
+
+    (b_si.powf(2.)) / a_si
+}
+
+/// Calculates the semi minor axis for a twobody system
+pub fn semi_minor_axis(a: f64, e: f64) -> f64 {
+    let a_si = a * 1000.;
+
+    a_si * ((1. - e.powf(2.)).sqrt())
+}
+
+/// Calculates the total radius for a twobody system
+pub fn radius(a: f64, e: f64, period: f64, t_p: f64) -> f64 {
+    let nu = true_anomaly(e, period, t_p);
+    let p = semi_parameter(a, e);
+
+    p / (1. + (e * nu.cos()))
+}
+
+/// Calculates the specific angular momentum value
+pub fn specific_angular_momentum_value(a: f64, e: f64) -> f64 {
+    let p = semi_parameter(a, e);
+    let mu = standard_gravitational_parameter(a, e);
+
+    (mu * p).sqrt()
+}
+
+/// Calculates the specific angular momentum coordinates
+pub fn specific_angular_momentum_coordinates(
+    a: f64,
+    e: f64,
+    period: f64,
+    t_p: f64,
+    lotn: f64,
+    aop: f64,
+    i: f64,
+) -> DVec3 {
+    let r = companion_relative_position(a, e, period, t_p, lotn, aop, i);
+    let v = companion_relative_velocity(a, e, period, t_p, lotn, aop, i);
+
+    DVec3::cross(r, v)
+}
+
+/// Calculates the stadard gravitational parameter
+pub fn standard_gravitational_parameter(a: f64, e: f64) -> f64 {
+    let a_si = a * 1000.;
+    let p_si = semi_parameter(a, e);
+
+    ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (p_si.powf(2.))
 }
