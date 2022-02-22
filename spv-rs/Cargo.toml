@@ -1,6 +1,6 @@
 [package]
 name = "spv-rs"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
 license = "GPL-3.0"
@@ -16,3 +16,5 @@ include = [
 
 [dependencies]
 glam = "0.20.2"
+csv = "1.1.6"
+serde = { version = "1", features = ["derive"] }
