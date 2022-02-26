@@ -637,9 +637,12 @@ relative velocity",
                         ui.monospace(format!("{}°", self.declination));
 
                         //Calculations
-                        let position =
-                            spv_rs::position(self.parallax, self.right_ascension, self.declination)
-                                .to_array();
+                        let position = spv_rs::position::position(
+                            self.parallax,
+                            self.right_ascension,
+                            self.declination,
+                        )
+                        .to_array();
                         self.x = position[0];
                         self.y = position[1];
                         self.z = position[2];
@@ -783,7 +786,7 @@ relative velocity",
                         ui.monospace(format!("{} km/s", self.radial_velocity));
 
                         //Calculations
-                        let velocity = spv_rs::velocity(
+                        let velocity = spv_rs::velocity::velocity(
                             self.parallax,
                             self.right_ascension,
                             self.declination,
@@ -846,8 +849,10 @@ relative velocity",
 
                         //Calculations
                         let euler_angle_transformations =
-                            spv_rs::euler_angle_transformations(self.lotn, self.aop, self.i)
-                                .to_cols_array();
+                            spv_rs::coordinate_transforms::euler_angle_transformations(
+                                self.lotn, self.aop, self.i,
+                            )
+                            .to_cols_array();
                         self.x1 = euler_angle_transformations[0];
                         self.x2 = euler_angle_transformations[1];
                         self.x3 = euler_angle_transformations[2];
@@ -958,7 +963,7 @@ relative velocity",
                         ui.monospace(format!("{} years", self.time_since_periapsis));
 
                         //Calculations
-                        let companion_position = spv_rs::companion_position(
+                        let companion_position = spv_rs::position::companion_position(
                             self.a,
                             self.e,
                             self.period,
@@ -1061,7 +1066,7 @@ relative velocity",
                         ui.monospace(format!("{} years", self.time_since_periapsis));
 
                         //Calculations
-                        let companion_velocity = spv_rs::companion_velocity(
+                        let companion_velocity = spv_rs::velocity::companion_velocity(
                             self.a,
                             self.e,
                             self.period,
@@ -1195,16 +1200,17 @@ relative velocity",
                         ui.monospace(format!("{} degrees", self.i));
 
                         //Calculations
-                        let companion_relative_position = spv_rs::companion_relative_position(
-                            self.a,
-                            self.e,
-                            self.period,
-                            self.time_since_periapsis,
-                            self.lotn,
-                            self.aop,
-                            self.i,
-                        )
-                        .to_array();
+                        let companion_relative_position =
+                            spv_rs::position::companion_relative_position(
+                                self.a,
+                                self.e,
+                                self.period,
+                                self.time_since_periapsis,
+                                self.lotn,
+                                self.aop,
+                                self.i,
+                            )
+                            .to_array();
                         self.companion_relative_position_x = companion_relative_position[0];
                         self.companion_relative_position_y = companion_relative_position[1];
                         self.companion_relative_position_z = companion_relative_position[2];
@@ -1334,16 +1340,17 @@ relative velocity",
                         ui.monospace(format!("{} degrees", self.i));
 
                         //Calculations
-                        let companion_relative_velocity = spv_rs::companion_relative_velocity(
-                            self.a,
-                            self.e,
-                            self.period,
-                            self.time_since_periapsis,
-                            self.lotn,
-                            self.aop,
-                            self.i,
-                        )
-                        .to_array();
+                        let companion_relative_velocity =
+                            spv_rs::velocity::companion_relative_velocity(
+                                self.a,
+                                self.e,
+                                self.period,
+                                self.time_since_periapsis,
+                                self.lotn,
+                                self.aop,
+                                self.i,
+                            )
+                            .to_array();
                         self.companion_relative_velocity_x = companion_relative_velocity[0];
                         self.companion_relative_velocity_y = companion_relative_velocity[1];
                         self.companion_relative_velocity_z = companion_relative_velocity[2];
