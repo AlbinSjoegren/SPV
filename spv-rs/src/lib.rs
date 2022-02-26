@@ -473,4 +473,77 @@ pub fn flattening(a: f64, e: f64) -> f64 {
     let b = semi_minor_axis(a, e);
 
     (a - b) / a
+}  
+
+pub fn parse_csv(filename: &str) -> std::vec::Vec<csv::StringRecord> {
+    let mut vec = vec!();
+    let mut rdr = csv::ReaderBuilder::new().delimiter(b',').terminator(csv::Terminator::Any(b'\n')).has_headers(false).from_path(filename).unwrap();
+    for result in rdr.records() {
+        if let Result::Ok(record) = result {
+            vec.push(record);
+        }
+    }
+    return vec;
+}
+use serde::Deserialize;
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct Collums {
+    ra_j2000: f32,
+    dec_j2000: f32,
+    hip: u32,
+    name: String,
+    pm_ra_j2000: f32,
+    pm_dec_j2000: f32,
+    plx_j2000: f32,
+    rv_j2000: f32,
+    vmag_j2000: f32,
 } 
+
+pub fn parse_csv_deserialize(filename: &str) -> std::vec::Vec<Collums> {
+    let mut vec = vec!();
+    let mut rdr = csv::ReaderBuilder::new().delimiter(b',').terminator(csv::Terminator::Any(b'\n')).has_headers(false).from_path(filename).unwrap();
+    for result in rdr.deserialize() {
+        let record: Collums = result.unwrap();
+        vec.push(record);
+    }
+    return vec;
+}
+
+/*
+pub fn above(
+    radius_primary: f64, 
+    observers_longitude_primary: f64, 
+    observers_latitude_primary: f64, 
+    obliquity_of_the_ecliptic_primary: f64,
+    rotation_rate_primary: f64,
+    lotn_primary: f64,
+    aop_primary: f64,
+    i_primary: f64,
+    distance: f64, 
+    a_companion: f64,
+    e_companion: f64,
+    period_companion: f64,
+    t_p_companion: f64,
+    lotn_companion: f64,
+    aop_companion: f64,
+    i_companion: f64,
+
+) {
+    
+    let observer_declination =  ((observers_latitude_primary.sin() * obliquity_of_the_ecliptic_primary.cos()) + (observers_latitude_primary.cos() * obliquity_of_the_ecliptic_primary.sin() * observers_longitude_primary.sin())).asin();
+    let observer_right_ascension = ((observers_latitude_primary.cos() * observers_longitude_primary.cos()) / observer_declination.cos()).acos();
+
+    let position_surface = position_surface(radius_primary, observer_right_ascension, observer_declination);
+
+    let primary_rotation = euler_angle_transformations(lotn_primary, aop_primary, i_primary);
+
+    let companion_rotation = euler_angle_transformations(lotn_companion, aop_companion, i_companion);
+
+    let new_companion_rotation = companion_rotation - primary_rotation;
+
+    let companion_position = companion_relative_position(a_companion, e_companion, period_companion, t_p_companion, lotn_companion, aop_companion, i_companion);
+    
+    let primary_velocity = (2. * std::f64::consts::PI * radius_primary) / rotation_rate_primary;
+}
+*/
