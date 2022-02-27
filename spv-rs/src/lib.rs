@@ -116,6 +116,7 @@ pub mod position {
     use super::common::true_anomaly;
     use super::coordinate_transforms::euler_angle_transformations;
     use glam::f64::{DVec2, DVec3};
+    use glam::f32::Vec3;
 
     /// Position of a single celestial object relative to the sun.
     /// Can be used in conjuction with companion functions to place a twobody system relative to the sun.
@@ -136,6 +137,24 @@ pub mod position {
         let z = distnace_si * declination_rad.cos();
 
         DVec3::new(x, y, z)
+    }
+
+    /// Same as [position::position] but with a f32 vector returned if you need that.
+    pub fn position_f32(parallax: f32, right_ascension: f32, declination: f32) -> Vec3 {
+        let distance = 1. / (parallax / 1000.);
+
+        let distnace_si = distance * (3.0856778570831 * 10_f32.powf(16.));
+
+        let right_ascension_rad = right_ascension.to_radians();
+        let declination_rad = (declination + 90.).to_radians();
+
+        let x = distnace_si * right_ascension_rad.cos() * declination_rad.sin();
+
+        let y = distnace_si * right_ascension_rad.sin() * declination_rad.sin();
+
+        let z = distnace_si * declination_rad.cos();
+
+        Vec3::new(x, y, z)
     }
 
     /// Position on the surface of a sphere with radius in meters.
