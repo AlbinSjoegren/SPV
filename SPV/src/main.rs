@@ -29,6 +29,17 @@ fn main() {
     eframe::run_native(Box::new(app), options);
 }
 
+fn parse_text_input(response: egui::Response, str: &str, mut val: f64) -> f64 {
+    if response.changed() && str.clone() != "" {
+        val = str.clone().parse().unwrap();
+    } if str.clone() == "" {
+        val = 0.;
+    } else if str.clone() == "-" {
+        val = 0.;
+    }
+    return val;
+}
+
 use egui::{FontDefinitions, FontFamily};
 use serde::{Deserialize, Serialize};
 
@@ -225,7 +236,7 @@ fn export_json(
 
 #[derive(Default)]
 
-pub struct Canvas {
+struct Canvas {
     name_str: String,
 
     x: f64,
