@@ -1,6 +1,6 @@
 [package]
 name = "spv-rs"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["Albin Sjögren <albin@sjoegren.se>"]
 edition = "2021"
 license = "GPL-3.0"

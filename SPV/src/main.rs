@@ -29,15 +29,18 @@ fn main() {
     eframe::run_native(Box::new(app), options);
 }
 
-fn parse_text_input(response: egui::Response, str: &str, mut val: f64) -> f64 {
-    if response.changed() && str.clone() != "" {
-        val = str.clone().parse().unwrap();
-    } if str.clone() == "" {
-        val = 0.;
-    } else if str.clone() == "-" {
+use std::error::Error;
+fn parse_text_input(
+    response: egui::Response,
+    string: String,
+    mut val: f64,
+) -> Result<f64, Box<dyn Error>> {
+    if response.changed() && !string.is_empty() && string != "-" {
+        val = string.parse()?;
+    } else if string.is_empty() || string == "-" {
         val = 0.;
     }
-    return val;
+    Ok(val)
 }
 
 use egui::{FontDefinitions, FontFamily};
@@ -563,87 +566,123 @@ relative velocity",
                     position_window.show(ctx, |ui| {
                         //Parallax
                         ui.heading("Parallax (mas)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
-                        if response.changed() && self.parallax_str.clone() != "" {
-                            self.parallax = self.parallax_str.clone().parse().unwrap();
-                        } else if self.parallax_str.clone() == "" {
-                            self.parallax = 0.;
+                        let response_parallax =
+                            ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
+                        match parse_text_input(
+                            response_parallax,
+                            self.parallax_str.clone(),
+                            self.parallax,
+                        ) {
+                            Ok(val) => self.parallax = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} mas", self.parallax));
 
                         //Right ascension
                         ui.heading("Right ascension");
                         ui.monospace("Hours (h)");
-                        let response =
+                        let response_right_ascension_h =
                             ui.add(egui::TextEdit::singleline(&mut self.right_ascension_h_str));
-                        if response.changed() && self.right_ascension_h_str.clone() != "" {
-                            self.right_ascension_h =
-                                self.right_ascension_h_str.clone().parse().unwrap();
-                        } else if self.right_ascension_h_str.clone() == "" {
-                            self.right_ascension_h = 0.;
+                        match parse_text_input(
+                            response_right_ascension_h,
+                            self.right_ascension_h_str.clone(),
+                            self.right_ascension_h,
+                        ) {
+                            Ok(val) => self.right_ascension_h = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} h", self.right_ascension_h));
                         ui.monospace("Minutes (m)");
-                        let response = ui.add(egui::TextEdit::singleline(
+                        let response_right_ascension_min = ui.add(egui::TextEdit::singleline(
                             &mut self.right_ascension_min_str,
                         ));
-                        if response.changed() && self.right_ascension_min_str.clone() != "" {
-                            self.right_ascension_min =
-                                self.right_ascension_min_str.clone().parse().unwrap();
-                        } else if self.right_ascension_min_str.clone() == "" {
-                            self.right_ascension_min = 0.;
+                        match parse_text_input(
+                            response_right_ascension_min,
+                            self.right_ascension_min_str.clone(),
+                            self.right_ascension_min,
+                        ) {
+                            Ok(val) => self.right_ascension_min = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} m", self.right_ascension_min));
                         ui.monospace("Seconds (s)");
-                        let response =
+                        let response_right_ascension_s =
                             ui.add(egui::TextEdit::singleline(&mut self.right_ascension_s_str));
-                        if response.changed() && self.right_ascension_s_str.clone() != "" {
-                            self.right_ascension_s =
-                                self.right_ascension_s_str.clone().parse().unwrap();
-                        } else if self.right_ascension_s_str.clone() == "" {
-                            self.right_ascension_s = 0.;
+                        match parse_text_input(
+                            response_right_ascension_s,
+                            self.right_ascension_s_str.clone(),
+                            self.right_ascension_s,
+                        ) {
+                            Ok(val) => self.right_ascension_s = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} s", self.right_ascension_s));
-                        self.right_ascension = (self.right_ascension_h * 15.)
-                            + (self.right_ascension_min * (1. / 4.))
-                            + (self.right_ascension_s * (1. / 240.));
+                        self.right_ascension = spv_rs::common::right_ascension_total(
+                            self.right_ascension_h,
+                            self.right_ascension_min,
+                            self.right_ascension_s,
+                        );
                         ui.heading("Total right ascension");
                         ui.monospace(format!("{}°", self.right_ascension));
 
                         //Declination
                         ui.heading("Declination");
                         ui.monospace("Degrees (°)");
-                        let response =
+                        let response_declination_degree =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_degree_str));
-                        if response.changed() && self.declination_degree_str.clone() != "" {
-                            self.declination_degree =
-                                self.declination_degree_str.clone().parse().unwrap();
-                        } else if self.declination_degree_str.clone() == "" {
-                            self.declination_degree = 0.;
+                        match parse_text_input(
+                            response_declination_degree,
+                            self.declination_degree_str.clone(),
+                            self.declination_degree,
+                        ) {
+                            Ok(val) => self.declination_degree = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}°", self.declination_degree));
                         ui.monospace("Minutes (')");
-                        let response =
+                        let response_declination_min =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_min_str));
-                        if response.changed() && self.declination_min_str.clone() != "" {
-                            self.declination_min =
-                                self.declination_min_str.clone().parse().unwrap();
-                        } else if self.declination_min_str.clone() == "" {
-                            self.declination_min = 0.;
+                        match parse_text_input(
+                            response_declination_min,
+                            self.declination_min_str.clone(),
+                            self.declination_min,
+                        ) {
+                            Ok(val) => self.declination_min = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}'", self.declination_min));
                         ui.monospace("Seconds ('')");
-                        let response =
+                        let response_declination_s =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_s_str));
-                        if response.changed() && self.declination_s_str.clone() != "" {
-                            self.declination_s = self.declination_s_str.clone().parse().unwrap();
-                        } else if self.declination_s_str.clone() == "" {
-                            self.declination_s = 0.;
+                        match parse_text_input(
+                            response_declination_s,
+                            self.declination_s_str.clone(),
+                            self.declination_s,
+                        ) {
+                            Ok(val) => self.declination_s = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}''", self.declination_s));
-                        self.declination = self.declination_degree
-                            + (self.declination_min / 60.)
-                            + (self.declination_s / 3600.);
+
+                        self.declination = spv_rs::common::declination_total(
+                            self.declination_degree,
+                            self.declination_min,
+                            self.declination_s,
+                        );
                         ui.heading("Total declination");
                         ui.monospace(format!("{}°", self.declination));
 
@@ -677,122 +716,170 @@ relative velocity",
                     velocity_window.show(ctx, |ui| {
                         //Parallax
                         ui.heading("Parallax (mas)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
-                        if response.changed() && self.parallax_str.clone() != "" {
-                            self.parallax = self.parallax_str.clone().parse().unwrap();
-                        } else if self.parallax_str.clone() == "" {
-                            self.parallax = 0.;
+                        let response_parallax =
+                            ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
+                        match parse_text_input(
+                            response_parallax,
+                            self.parallax_str.clone(),
+                            self.parallax,
+                        ) {
+                            Ok(val) => self.parallax = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} mas", self.parallax));
 
                         //Right ascension
                         ui.heading("Right ascension");
                         ui.monospace("Hours (h)");
-                        let response =
+                        let response_right_ascension_h =
                             ui.add(egui::TextEdit::singleline(&mut self.right_ascension_h_str));
-                        if response.changed() && self.right_ascension_h_str.clone() != "" {
-                            self.right_ascension_h =
-                                self.right_ascension_h_str.clone().parse().unwrap();
-                        } else if self.right_ascension_h_str.clone() == "" {
-                            self.right_ascension_h = 0.;
+                        match parse_text_input(
+                            response_right_ascension_h,
+                            self.right_ascension_h_str.clone(),
+                            self.right_ascension_h,
+                        ) {
+                            Ok(val) => self.right_ascension_h = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} h", self.right_ascension_h));
                         ui.monospace("Minutes (m)");
-                        let response = ui.add(egui::TextEdit::singleline(
+                        let response_right_ascension_min = ui.add(egui::TextEdit::singleline(
                             &mut self.right_ascension_min_str,
                         ));
-                        if response.changed() && self.right_ascension_min_str.clone() != "" {
-                            self.right_ascension_min =
-                                self.right_ascension_min_str.clone().parse().unwrap();
-                        } else if self.right_ascension_min_str.clone() == "" {
-                            self.right_ascension_min = 0.;
+                        match parse_text_input(
+                            response_right_ascension_min,
+                            self.right_ascension_min_str.clone(),
+                            self.right_ascension_min,
+                        ) {
+                            Ok(val) => self.right_ascension_min = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} m", self.right_ascension_min));
                         ui.monospace("Seconds (s)");
-                        let response =
+                        let response_right_ascension_s =
                             ui.add(egui::TextEdit::singleline(&mut self.right_ascension_s_str));
-                        if response.changed() && self.right_ascension_s_str.clone() != "" {
-                            self.right_ascension_s =
-                                self.right_ascension_s_str.clone().parse().unwrap();
-                        } else if self.right_ascension_s_str.clone() == "" {
-                            self.right_ascension_s = 0.;
+                        match parse_text_input(
+                            response_right_ascension_s,
+                            self.right_ascension_s_str.clone(),
+                            self.right_ascension_s,
+                        ) {
+                            Ok(val) => self.right_ascension_s = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} s", self.right_ascension_s));
-                        self.right_ascension = (self.right_ascension_h * 15.)
-                            + (self.right_ascension_min * (1. / 4.))
-                            + (self.right_ascension_s * (1. / 240.));
+                        self.right_ascension = spv_rs::common::right_ascension_total(
+                            self.right_ascension_h,
+                            self.right_ascension_min,
+                            self.right_ascension_s,
+                        );
                         ui.heading("Total right ascension");
                         ui.monospace(format!("{}°", self.right_ascension));
 
                         //Declination
                         ui.heading("Declination");
                         ui.monospace("Degrees (°)");
-                        let response =
+                        let response_declination_degree =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_degree_str));
-                        if response.changed() && self.declination_degree_str.clone() != "" {
-                            self.declination_degree =
-                                self.declination_degree_str.clone().parse().unwrap();
-                        } else if self.declination_degree_str.clone() == "" {
-                            self.declination_degree = 0.;
+                        match parse_text_input(
+                            response_declination_degree,
+                            self.declination_degree_str.clone(),
+                            self.declination_degree,
+                        ) {
+                            Ok(val) => self.declination_degree = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}°", self.declination_degree));
                         ui.monospace("Minutes (')");
-                        let response =
+                        let response_declination_min =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_min_str));
-                        if response.changed() && self.declination_min_str.clone() != "" {
-                            self.declination_min =
-                                self.declination_min_str.clone().parse().unwrap();
-                        } else if self.declination_min_str.clone() == "" {
-                            self.declination_min = 0.;
+                        match parse_text_input(
+                            response_declination_min,
+                            self.declination_min_str.clone(),
+                            self.declination_min,
+                        ) {
+                            Ok(val) => self.declination_min = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}'", self.declination_min));
                         ui.monospace("Seconds ('')");
-                        let response =
+                        let response_declination_s =
                             ui.add(egui::TextEdit::singleline(&mut self.declination_s_str));
-                        if response.changed() && self.declination_s_str.clone() != "" {
-                            self.declination_s = self.declination_s_str.clone().parse().unwrap();
-                        } else if self.declination_s_str.clone() == "" {
-                            self.declination_s = 0.;
+                        match parse_text_input(
+                            response_declination_s,
+                            self.declination_s_str.clone(),
+                            self.declination_s,
+                        ) {
+                            Ok(val) => self.declination_s = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}''", self.declination_s));
-                        self.declination = self.declination_degree
-                            + (self.declination_min / 60.)
-                            + (self.declination_s / 3600.);
+
+                        self.declination = spv_rs::common::declination_total(
+                            self.declination_degree,
+                            self.declination_min,
+                            self.declination_s,
+                        );
                         ui.heading("Total declination");
                         ui.monospace(format!("{}°", self.declination));
 
                         //Proper motion
                         ui.heading("Proper motion");
                         ui.monospace("Right ascension (arcsecons/year)");
-                        let response =
+                        let response_proper_motion_ra =
                             ui.add(egui::TextEdit::singleline(&mut self.proper_motion_ra_str));
-                        if response.changed() && self.proper_motion_ra_str.clone() != "" {
-                            self.proper_motion_ra =
-                                self.proper_motion_ra_str.clone().parse().unwrap();
-                        } else if self.proper_motion_ra_str.clone() == "" {
-                            self.proper_motion_ra = 0.;
+                        match parse_text_input(
+                            response_proper_motion_ra,
+                            self.proper_motion_ra_str.clone(),
+                            self.proper_motion_ra,
+                        ) {
+                            Ok(val) => self.proper_motion_ra = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} as/yr", self.proper_motion_ra));
                         ui.monospace("Declination (arcsecons/year)");
-                        let response =
+                        let response_proper_motion_dec =
                             ui.add(egui::TextEdit::singleline(&mut self.proper_motion_dec_str));
-                        if response.changed() && self.proper_motion_dec_str.clone() != "" {
-                            self.proper_motion_dec =
-                                self.proper_motion_dec_str.clone().parse().unwrap();
-                        } else if self.proper_motion_dec_str.clone() == "" {
-                            self.proper_motion_dec = 0.;
+                        match parse_text_input(
+                            response_proper_motion_dec,
+                            self.proper_motion_dec_str.clone(),
+                            self.proper_motion_dec,
+                        ) {
+                            Ok(val) => self.proper_motion_dec = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} as/yr", self.proper_motion_dec));
 
                         //Radial velocity
                         ui.heading("Radial velocity (km/s)");
-                        let response =
+                        let response_radial_velocity =
                             ui.add(egui::TextEdit::singleline(&mut self.radial_velocity_str));
-                        if response.changed() && self.radial_velocity_str.clone() != "" {
-                            self.radial_velocity =
-                                self.radial_velocity_str.clone().parse().unwrap();
-                        } else if self.radial_velocity_str.clone() == "" {
-                            self.radial_velocity = 0.;
+                        match parse_text_input(
+                            response_radial_velocity,
+                            self.radial_velocity_str.clone(),
+                            self.radial_velocity,
+                        ) {
+                            Ok(val) => self.radial_velocity = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} km/s", self.radial_velocity));
 
@@ -830,31 +917,34 @@ relative velocity",
                     euler_angle_transformations_window.show(ctx, |ui| {
                         //Longitude of the node
                         ui.heading("Longitude of the node (Ω)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.lotn_str));
-                        if response.changed() && self.lotn_str.clone() != "" {
-                            self.lotn = self.lotn_str.clone().parse().unwrap();
-                        } else if self.lotn_str.clone() == "" {
-                            self.lotn = 0.;
+                        let response_lotn = ui.add(egui::TextEdit::singleline(&mut self.lotn_str));
+                        match parse_text_input(response_lotn, self.lotn_str.clone(), self.lotn) {
+                            Ok(val) => self.lotn = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.lotn));
 
                         //Argument of periastron
                         ui.heading("Argument of periastron (ω)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.aop_str));
-                        if response.changed() && self.aop_str.clone() != "" {
-                            self.aop = self.aop_str.clone().parse().unwrap();
-                        } else if self.aop_str.clone() == "" {
-                            self.aop = 0.;
+                        let response_aop = ui.add(egui::TextEdit::singleline(&mut self.aop_str));
+                        match parse_text_input(response_aop, self.aop_str.clone(), self.aop) {
+                            Ok(val) => self.aop = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.aop));
 
                         //Inclination
                         ui.heading("Inclination (i)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.i_str));
-                        if response.changed() && self.i_str.clone() != "" {
-                            self.i = self.i_str.clone().parse().unwrap();
-                        } else if self.i_str.clone() == "" {
-                            self.i = 0.;
+                        let response_i = ui.add(egui::TextEdit::singleline(&mut self.i_str));
+                        match parse_text_input(response_i, self.i_str.clone(), self.i) {
+                            Ok(val) => self.i = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.i));
 
@@ -899,14 +989,21 @@ relative velocity",
                     companion_position_window.show(ctx, |ui| {
                         //Parallax
                         ui.heading("Parallax (mas)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
-                        if response.changed() && self.parallax_str.clone() != "" {
-                            self.parallax = self.parallax_str.clone().parse().unwrap();
-                        } else if self.parallax_str.clone() == "" {
-                            self.parallax = 0.;
+                        let response_parallax =
+                            ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
+                        match parse_text_input(
+                            response_parallax,
+                            self.parallax_str.clone(),
+                            self.parallax,
+                        ) {
+                            Ok(val) => self.parallax = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} mas", self.parallax));
-                        self.distance_parsec = 1. / (self.parallax / 1000.);
+                        self.distance_parsec =
+                            spv_rs::common::parallax_to_parsec(self.parallax);
                         ui.monospace(format!("{} parsec", self.distance_parsec));
 
                         //Semi major-axis
@@ -920,56 +1017,82 @@ relative velocity",
                             }
                         });
                         if self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} au", self.a_arcsec));
-                            self.a = self.a_arcsec * 149597870.7;
+                            self.a = self.a_arcsec;
                         }
                         if !self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} arcseconds", self.a_arcsec));
-                            self.a = self.a_arcsec * self.distance_parsec * 149597870.7;
+                            self.a = spv_rs::common::a_to_au(
+                                self.parallax,
+                                self.a_arcsec,
+                            );
                         }
 
                         //Eccentricity
                         ui.heading("Eccentricity (e)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.e_str));
-                        if response.changed() && self.e_str.clone() != "" {
-                            self.e = self.e_str.clone().parse().unwrap();
-                        } else if self.e_str.clone() == "" {
-                            self.e = 0.;
+                        let response_e = ui.add(egui::TextEdit::singleline(&mut self.e_str));
+                        match parse_text_input(response_e, self.e_str.clone(), self.e) {
+                            Ok(val) => self.e = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}", self.e));
 
                         //Period
                         ui.heading("Period (P)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.period_str));
-                        if response.changed() && self.period_str.clone() != "" {
-                            self.period = self.period_str.clone().parse().unwrap();
-                        } else if self.period_str.clone() == "" {
-                            self.period = 0.;
+                        let response_period =
+                            ui.add(egui::TextEdit::singleline(&mut self.period_str));
+                        match parse_text_input(
+                            response_period,
+                            self.period_str.clone(),
+                            self.period,
+                        ) {
+                            Ok(val) => self.period = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.period));
 
                         //Time since periastron
                         ui.heading("Time since periapsis (t)");
-                        let response = ui.add(egui::TextEdit::singleline(
+                        let response_time_since_periapsis = ui.add(egui::TextEdit::singleline(
                             &mut self.time_since_periapsis_str,
                         ));
-                        if response.changed() && self.time_since_periapsis_str.clone() != "" {
-                            self.time_since_periapsis =
-                                self.time_since_periapsis_str.clone().parse().unwrap();
-                        } else if self.time_since_periapsis_str.clone() == "" {
-                            self.time_since_periapsis = 0.;
+                        match parse_text_input(
+                            response_time_since_periapsis,
+                            self.time_since_periapsis_str.clone(),
+                            self.time_since_periapsis,
+                        ) {
+                            Ok(val) => self.time_since_periapsis = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.time_since_periapsis));
 
@@ -1002,14 +1125,21 @@ relative velocity",
                     companion_velocity_window.show(ctx, |ui| {
                         //Parallax
                         ui.heading("Parallax (mas)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
-                        if response.changed() && self.parallax_str.clone() != "" {
-                            self.parallax = self.parallax_str.clone().parse().unwrap();
-                        } else if self.parallax_str.clone() == "" {
-                            self.parallax = 0.;
+                        let response_parallax =
+                            ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
+                        match parse_text_input(
+                            response_parallax,
+                            self.parallax_str.clone(),
+                            self.parallax,
+                        ) {
+                            Ok(val) => self.parallax = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} mas", self.parallax));
-                        self.distance_parsec = 1. / (self.parallax / 1000.);
+                        self.distance_parsec =
+                            spv_rs::common::parallax_to_parsec(self.parallax);
                         ui.monospace(format!("{} parsec", self.distance_parsec));
 
                         //Semi major-axis
@@ -1023,56 +1153,82 @@ relative velocity",
                             }
                         });
                         if self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} au", self.a_arcsec));
-                            self.a = self.a_arcsec * 149597870.7;
+                            self.a = self.a_arcsec;
                         }
                         if !self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} arcseconds", self.a_arcsec));
-                            self.a = self.a_arcsec * self.distance_parsec * 149597870.7;
+                            self.a = spv_rs::common::a_to_au(
+                                self.parallax,
+                                self.a_arcsec,
+                            );
                         }
 
                         //Eccentricity
                         ui.heading("Eccentricity (e)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.e_str));
-                        if response.changed() && self.e_str.clone() != "" {
-                            self.e = self.e_str.clone().parse().unwrap();
-                        } else if self.e_str.clone() == "" {
-                            self.e = 0.;
+                        let response_e = ui.add(egui::TextEdit::singleline(&mut self.e_str));
+                        match parse_text_input(response_e, self.e_str.clone(), self.e) {
+                            Ok(val) => self.e = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}", self.e));
 
                         //Period
                         ui.heading("Period (P)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.period_str));
-                        if response.changed() && self.period_str.clone() != "" {
-                            self.period = self.period_str.clone().parse().unwrap();
-                        } else if self.period_str.clone() == "" {
-                            self.period = 0.;
+                        let response_period =
+                            ui.add(egui::TextEdit::singleline(&mut self.period_str));
+                        match parse_text_input(
+                            response_period,
+                            self.period_str.clone(),
+                            self.period,
+                        ) {
+                            Ok(val) => self.period = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.period));
 
                         //Time since periastron
                         ui.heading("Time since periapsis (t)");
-                        let response = ui.add(egui::TextEdit::singleline(
+                        let response_time_since_periapsis = ui.add(egui::TextEdit::singleline(
                             &mut self.time_since_periapsis_str,
                         ));
-                        if response.changed() && self.time_since_periapsis_str.clone() != "" {
-                            self.time_since_periapsis =
-                                self.time_since_periapsis_str.clone().parse().unwrap();
-                        } else if self.time_since_periapsis_str.clone() == "" {
-                            self.time_since_periapsis = 0.;
+                        match parse_text_input(
+                            response_time_since_periapsis,
+                            self.time_since_periapsis_str.clone(),
+                            self.time_since_periapsis,
+                        ) {
+                            Ok(val) => self.time_since_periapsis = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.time_since_periapsis));
 
@@ -1106,14 +1262,21 @@ relative velocity",
                     companion_relative_position_window.show(ctx, |ui| {
                         //Parallax
                         ui.heading("Parallax (mas)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
-                        if response.changed() && self.parallax_str.clone() != "" {
-                            self.parallax = self.parallax_str.clone().parse().unwrap();
-                        } else if self.parallax_str.clone() == "" {
-                            self.parallax = 0.;
+                        let response_parallax =
+                            ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
+                        match parse_text_input(
+                            response_parallax,
+                            self.parallax_str.clone(),
+                            self.parallax,
+                        ) {
+                            Ok(val) => self.parallax = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} mas", self.parallax));
-                        self.distance_parsec = 1. / (self.parallax / 1000.);
+                        self.distance_parsec =
+                            spv_rs::common::parallax_to_parsec(self.parallax);
                         ui.monospace(format!("{} parsec", self.distance_parsec));
 
                         //Semi major-axis
@@ -1127,86 +1290,115 @@ relative velocity",
                             }
                         });
                         if self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} au", self.a_arcsec));
-                            self.a = self.a_arcsec * 149597870.7;
+                            self.a = self.a_arcsec;
                         }
                         if !self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} arcseconds", self.a_arcsec));
-                            self.a = self.a_arcsec * self.distance_parsec * 149597870.7;
+                            self.a = spv_rs::common::a_to_au(
+                                self.parallax,
+                                self.a_arcsec,
+                            );
                         }
 
                         //Eccentricity
                         ui.heading("Eccentricity (e)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.e_str));
-                        if response.changed() && self.e_str.clone() != "" {
-                            self.e = self.e_str.clone().parse().unwrap();
-                        } else if self.e_str.clone() == "" {
-                            self.e = 0.;
+                        let response_e = ui.add(egui::TextEdit::singleline(&mut self.e_str));
+                        match parse_text_input(response_e, self.e_str.clone(), self.e) {
+                            Ok(val) => self.e = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}", self.e));
 
                         //Period
                         ui.heading("Period (P)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.period_str));
-                        if response.changed() && self.period_str.clone() != "" {
-                            self.period = self.period_str.clone().parse().unwrap();
-                        } else if self.period_str.clone() == "" {
-                            self.period = 0.;
+                        let response_period =
+                            ui.add(egui::TextEdit::singleline(&mut self.period_str));
+                        match parse_text_input(
+                            response_period,
+                            self.period_str.clone(),
+                            self.period,
+                        ) {
+                            Ok(val) => self.period = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.period));
 
                         //Time since periastron
                         ui.heading("Time since periapsis (t)");
-                        let response = ui.add(egui::TextEdit::singleline(
+                        let response_time_since_periapsis = ui.add(egui::TextEdit::singleline(
                             &mut self.time_since_periapsis_str,
                         ));
-                        if response.changed() && self.time_since_periapsis_str.clone() != "" {
-                            self.time_since_periapsis =
-                                self.time_since_periapsis_str.clone().parse().unwrap();
-                        } else if self.time_since_periapsis_str.clone() == "" {
-                            self.time_since_periapsis = 0.;
+                        match parse_text_input(
+                            response_time_since_periapsis,
+                            self.time_since_periapsis_str.clone(),
+                            self.time_since_periapsis,
+                        ) {
+                            Ok(val) => self.time_since_periapsis = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.time_since_periapsis));
 
                         //Longitude of the node
                         ui.heading("Longitude of the node (Ω)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.lotn_str));
-                        if response.changed() && self.lotn_str.clone() != "" {
-                            self.lotn = self.lotn_str.clone().parse().unwrap();
-                        } else if self.lotn_str.clone() == "" {
-                            self.lotn = 0.;
+                        let response_lotn = ui.add(egui::TextEdit::singleline(&mut self.lotn_str));
+                        match parse_text_input(response_lotn, self.lotn_str.clone(), self.lotn) {
+                            Ok(val) => self.lotn = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.lotn));
 
                         //Argument of periastron
                         ui.heading("Argument of periastron (ω)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.aop_str));
-                        if response.changed() && self.aop_str.clone() != "" {
-                            self.aop = self.aop_str.clone().parse().unwrap();
-                        } else if self.aop_str.clone() == "" {
-                            self.aop = 0.;
+                        let response_aop = ui.add(egui::TextEdit::singleline(&mut self.aop_str));
+                        match parse_text_input(response_aop, self.aop_str.clone(), self.aop) {
+                            Ok(val) => self.aop = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.aop));
 
                         //Inclination
                         ui.heading("Inclination (i)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.i_str));
-                        if response.changed() && self.i_str.clone() != "" {
-                            self.i = self.i_str.clone().parse().unwrap();
-                        } else if self.i_str.clone() == "" {
-                            self.i = 0.;
+                        let response_i = ui.add(egui::TextEdit::singleline(&mut self.i_str));
+                        match parse_text_input(response_i, self.i_str.clone(), self.i) {
+                            Ok(val) => self.i = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.i));
 
@@ -1246,14 +1438,21 @@ relative velocity",
                     companion_relative_velocity_window.show(ctx, |ui| {
                         //Parallax
                         ui.heading("Parallax (mas)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
-                        if response.changed() && self.parallax_str.clone() != "" {
-                            self.parallax = self.parallax_str.clone().parse().unwrap();
-                        } else if self.parallax_str.clone() == "" {
-                            self.parallax = 0.;
+                        let response_parallax =
+                            ui.add(egui::TextEdit::singleline(&mut self.parallax_str));
+                        match parse_text_input(
+                            response_parallax,
+                            self.parallax_str.clone(),
+                            self.parallax,
+                        ) {
+                            Ok(val) => self.parallax = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} mas", self.parallax));
-                        self.distance_parsec = 1. / (self.parallax / 1000.);
+                        self.distance_parsec =
+                            spv_rs::common::parallax_to_parsec(self.parallax);
                         ui.monospace(format!("{} parsec", self.distance_parsec));
 
                         //Semi major-axis
@@ -1267,86 +1466,115 @@ relative velocity",
                             }
                         });
                         if self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} au", self.a_arcsec));
-                            self.a = self.a_arcsec * 149597870.7;
+                            self.a = self.a_arcsec;
                         }
                         if !self.au_arcsec_toggle {
-                            let response = ui.add(egui::TextEdit::singleline(&mut self.a_str));
-                            if response.changed() && self.a_str.clone() != "" {
-                                self.a_arcsec = self.a_str.clone().parse().unwrap();
-                            } else if self.a_str.clone() == "" {
-                                self.a_arcsec = 0.;
+                            let response_a_arcsec =
+                                ui.add(egui::TextEdit::singleline(&mut self.a_str));
+                            match parse_text_input(
+                                response_a_arcsec,
+                                self.a_str.clone(),
+                                self.a_arcsec,
+                            ) {
+                                Ok(val) => self.a_arcsec = val,
+                                Err(ex) => {
+                                    println!("ERROR -> {}", ex);
+                                }
                             }
                             ui.monospace(format!("{} arcseconds", self.a_arcsec));
-                            self.a = self.a_arcsec * self.distance_parsec * 149597870.7;
+                            self.a = spv_rs::common::a_to_au(
+                                self.parallax,
+                                self.a_arcsec,
+                            );
                         }
 
                         //Eccentricity
                         ui.heading("Eccentricity (e)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.e_str));
-                        if response.changed() && self.e_str.clone() != "" {
-                            self.e = self.e_str.clone().parse().unwrap();
-                        } else if self.e_str.clone() == "" {
-                            self.e = 0.;
+                        let response_e = ui.add(egui::TextEdit::singleline(&mut self.e_str));
+                        match parse_text_input(response_e, self.e_str.clone(), self.e) {
+                            Ok(val) => self.e = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{}", self.e));
 
                         //Period
                         ui.heading("Period (P)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.period_str));
-                        if response.changed() && self.period_str.clone() != "" {
-                            self.period = self.period_str.clone().parse().unwrap();
-                        } else if self.period_str.clone() == "" {
-                            self.period = 0.;
+                        let response_period =
+                            ui.add(egui::TextEdit::singleline(&mut self.period_str));
+                        match parse_text_input(
+                            response_period,
+                            self.period_str.clone(),
+                            self.period,
+                        ) {
+                            Ok(val) => self.period = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.period));
 
                         //Time since periastron
                         ui.heading("Time since periapsis (t)");
-                        let response = ui.add(egui::TextEdit::singleline(
+                        let response_time_since_periapsis = ui.add(egui::TextEdit::singleline(
                             &mut self.time_since_periapsis_str,
                         ));
-                        if response.changed() && self.time_since_periapsis_str.clone() != "" {
-                            self.time_since_periapsis =
-                                self.time_since_periapsis_str.clone().parse().unwrap();
-                        } else if self.time_since_periapsis_str.clone() == "" {
-                            self.time_since_periapsis = 0.;
+                        match parse_text_input(
+                            response_time_since_periapsis,
+                            self.time_since_periapsis_str.clone(),
+                            self.time_since_periapsis,
+                        ) {
+                            Ok(val) => self.time_since_periapsis = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} years", self.time_since_periapsis));
 
                         //Longitude of the node
                         ui.heading("Longitude of the node (Ω)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.lotn_str));
-                        if response.changed() && self.lotn_str.clone() != "" {
-                            self.lotn = self.lotn_str.clone().parse().unwrap();
-                        } else if self.lotn_str.clone() == "" {
-                            self.lotn = 0.;
+                        let response_lotn = ui.add(egui::TextEdit::singleline(&mut self.lotn_str));
+                        match parse_text_input(response_lotn, self.lotn_str.clone(), self.lotn) {
+                            Ok(val) => self.lotn = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.lotn));
 
                         //Argument of periastron
                         ui.heading("Argument of periastron (ω)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.aop_str));
-                        if response.changed() && self.aop_str.clone() != "" {
-                            self.aop = self.aop_str.clone().parse().unwrap();
-                        } else if self.aop_str.clone() == "" {
-                            self.aop = 0.;
+                        let response_aop = ui.add(egui::TextEdit::singleline(&mut self.aop_str));
+                        match parse_text_input(response_aop, self.aop_str.clone(), self.aop) {
+                            Ok(val) => self.aop = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.aop));
 
                         //Inclination
                         ui.heading("Inclination (i)");
-                        let response = ui.add(egui::TextEdit::singleline(&mut self.i_str));
-                        if response.changed() && self.i_str.clone() != "" {
-                            self.i = self.i_str.clone().parse().unwrap();
-                        } else if self.i_str.clone() == "" {
-                            self.i = 0.;
+                        let response_i = ui.add(egui::TextEdit::singleline(&mut self.i_str));
+                        match parse_text_input(response_i, self.i_str.clone(), self.i) {
+                            Ok(val) => self.i = val,
+                            Err(ex) => {
+                                println!("ERROR -> {}", ex);
+                            }
                         }
                         ui.monospace(format!("{} degrees", self.i));
 

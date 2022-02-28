@@ -384,14 +384,13 @@ pub mod velocity {
 /// Set of common functions used by `spv-rs` exposed if you want to used them for your own calculations.
 pub mod common {
     use super::coordinate_transforms::euler_angle_transformations;
-    use super::position::companion_relative_position;
+    use super::position::companion_relative_position; 
     use super::velocity::companion_relative_velocity;
     use glam::f64::DVec3;
 
     /// Takes a in as (arcseconds) and parllax in mas (milliarcsecond) and outputs a in au.
     pub fn a_to_au(parallax: f64, a: f64) -> f64 {
-        let distance_parsec = 1. / (parallax / 1000.);
-        a * distance_parsec * 149597870.7
+        a * parallax_to_parsec(parallax)
     }
 
     /// Calculates total declination in degrees with declination_degree, declination_min and declination_s in degrees, minutes and seconds respectively.
@@ -416,23 +415,24 @@ pub mod common {
 
     /// Calculates r min or the minimum distance between the primary and companion boides in a twobody system also known as perigee
     /// (suffix may change depending on what object it reffers to).
-    /// Output is just the x coordinate in the ellipses plane.
+    /// Output is just the x coordinate in the ellipses plane in au.
     pub fn perigee(a: f64, e: f64) -> f64 {
         a * (1. - e)
     }
 
     /// Calculates r max or the maximum distance between the primary and companion boides in a twobody system also known as apogee
     /// (suffix may change depending on what object it reffers to).
-    /// Output is just the x coordinate in the ellipses plane.
+    /// Output is just the x coordinate in the ellipses plane in au.
     pub fn apogee(a: f64, e: f64) -> f64 {
         a * (1. + e)
     }
 
     /// Calculates r min or the minimum distance between the primary and companion boides in a twobody system also known as perigee
     /// (suffix may change depending on what object it reffers to).
-    /// Output is 3-dimensional vector that represents the coordinates for perigee rotated to be relative to the earth/sun plane.
+    /// Output is 3-dimensional vector that represents the coordinates for perigee rotated to be relative to the earth/sun plane in meters.
     pub fn relative_perigee(a: f64, e: f64, lotn: f64, aop: f64, i: f64) -> DVec3 {
-        let x = a * (1. - e);
+        let a_si = au_to_m(a);
+        let x = a_si * (1. - e);
 
         let euler_angle_transformations = euler_angle_transformations(lotn, aop, i).to_cols_array();
         let x1 = euler_angle_transformations[0];
@@ -444,9 +444,10 @@ pub mod common {
 
     /// Calculates r max or the maximum distance between the primary and companion boides in a twobody system also known as apogee
     /// (suffix may change depending on what object it reffers to).
-    /// Output is 3-dimensional vector that represents the coordinates for apogee rotated to be relative to the earth/sun plane.
+    /// Output is 3-dimensional vector that represents the coordinates for apogee rotated to be relative to the earth/sun plane in meters.
     pub fn relative_apogee(a: f64, e: f64, lotn: f64, aop: f64, i: f64) -> DVec3 {
-        let x = a * (1. + e);
+        let a_si = au_to_m(a);
+        let x = a_si * (1. + e);
 
         let euler_angle_transformations = euler_angle_transformations(lotn, aop, i).to_cols_array();
         let x1 = euler_angle_transformations[0];
@@ -506,17 +507,17 @@ pub mod common {
             .to_degrees()
     }
 
-    /// Calculates the semi parameter for a twobody system
+    /// Calculates the semi parameter for a twobody system and returns it in meters.
     pub fn semi_parameter(a: f64, e: f64) -> f64 {
-        let a_si = a * 1000.;
+        let a_si = au_to_m(a);
         let b_si = semi_minor_axis(a, e);
 
         (b_si.powf(2.)) / a_si
     }
 
-    /// Calculates the semi minor axis for a twobody system
+    /// Calculates the semi minor axis for a twobody system and returns it in meters.
     pub fn semi_minor_axis(a: f64, e: f64) -> f64 {
-        let a_si = a * 1000.;
+        let a_si = au_to_m(a);
 
         a_si * ((1. - e.powf(2.)).sqrt())
     }
@@ -555,7 +556,7 @@ pub mod common {
 
     /// Calculates the stadard gravitational parameter
     pub fn standard_gravitational_parameter(a: f64, e: f64) -> f64 {
-        let a_si = a * 1000.;
+        let a_si = au_to_m(a);
         let p_si = semi_parameter(a, e);
 
         ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (p_si.powf(2.))
@@ -563,16 +564,18 @@ pub mod common {
 
     /// Specific mechanical energy (used by other equation but exposed here if you need it)
     pub fn specific_mechanical_energy(a: f64, e: f64) -> f64 {
+        let a_si = au_to_m(a);
         let mu = standard_gravitational_parameter(a, e);
 
-        0. - (mu / (2. * a))
+        0. - (mu / (2. * a_si))
     }
 
     /// If you dind't have the period already
     pub fn period(a: f64, e: f64) -> f64 {
+        let a_si = au_to_m(a);
         let mu = standard_gravitational_parameter(a, e);
 
-        2. * std::f64::consts::PI * (((a.powf(3.)) / mu).sqrt())
+        2. * std::f64::consts::PI * (((a_si.powf(3.)) / mu).sqrt())
     }
 
     /// If you for some reason had these parameters and not a then here ya go
@@ -585,9 +588,10 @@ pub mod common {
 
     /// Mean motion or n
     pub fn mean_motion(a: f64, e: f64) -> f64 {
+        let a_si = au_to_m(a);
         let mu = standard_gravitational_parameter(a, e);
 
-        (mu / (a.powf(3.))).sqrt()
+        (mu / (a_si.powf(3.))).sqrt()
     }
 
     /// If you for some reason had these parameters and not e then here ya go.
@@ -601,16 +605,27 @@ pub mod common {
         .sqrt()
     }
 
-    /// Distance between one foci and the center of the ellipse.
+    /// Distance between one foci and the center of the ellipse in au.
     pub fn linear_eccentricity(a: f64, e: f64) -> f64 {
         a * e
     }
 
     /// Flattening is another way to defining eccentricity for an ellipse.
     pub fn flattening(a: f64, e: f64) -> f64 {
-        let b = semi_minor_axis(a, e);
+        let a_si = au_to_m(a);
+        let b = semi_minor_axis(a_si, e);
 
-        (a - b) / a
+        (a_si - b) / a_si
+    }
+
+    /// Parallax to parsec convert function where the parallax parameter is in mas (milliarcseconds).
+    pub fn parallax_to_parsec(parallax: f64) -> f64 {
+        1. / (parallax / 1000.)
+    }
+
+    /// Simple function motsly used by `spv-rs` to convert au to meters (used for semi major-axis in most cases but can be used for other stuff too).
+    pub fn au_to_m(a: f64) -> f64 {
+        a * 1000. * 149597870.7
     }
 }
 
