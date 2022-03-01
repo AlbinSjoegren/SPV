@@ -115,8 +115,8 @@ pub mod position {
     use super::common::semi_parameter;
     use super::common::true_anomaly;
     use super::coordinate_transforms::euler_angle_transformations;
-    use glam::f64::{DVec2, DVec3};
     use glam::f32::Vec3;
+    use glam::f64::{DVec2, DVec3};
 
     /// Position of a single celestial object relative to the sun.
     /// Can be used in conjuction with companion functions to place a twobody system relative to the sun.
@@ -384,7 +384,7 @@ pub mod velocity {
 /// Set of common functions used by `spv-rs` exposed if you want to used them for your own calculations.
 pub mod common {
     use super::coordinate_transforms::euler_angle_transformations;
-    use super::position::companion_relative_position; 
+    use super::position::companion_relative_position;
     use super::velocity::companion_relative_velocity;
     use glam::f64::DVec3;
 
@@ -689,7 +689,7 @@ pub mod input_data {
         Ok(vec)
     }
 
-    /// Struct defining a set of collumn variables and types for cav parsing with specific input structure.
+    /// Struct defining a set of collumn variables and types for csv parsing with specific input structure.
     #[derive(Debug, Deserialize)]
     #[serde(rename_all = "PascalCase")]
     pub struct Collums {
@@ -727,6 +727,159 @@ pub mod input_data {
         }
         Ok(vec)
     }
+
+    /// Struct defining a set of collumn variables and types for csv parsing with specific input structure.
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "PascalCase")]
+    pub struct NBSSCollums {
+        pub name: String,
+        pub mass: f64,
+        pub radius: f64,
+        pub refernce_body: String,
+        pub a: f64,
+        pub e: f64,
+        pub period: f64,
+        pub time_since_periapsis: f64,
+        pub lotn: f64,
+        pub aop: f64,
+        pub i: f64,
+    }
+
+    /// csv parsing with deserializsation using specific collum layout found in [NBSSCollums]
+    pub fn nbss_parse_csv_deserialize(
+        filename: &str,
+    ) -> Result<std::vec::Vec<NBSSCollums>, Box<dyn Error>> {
+        let mut vec = vec![];
+        let mut rdr = ReaderBuilder::new()
+            .delimiter(b',')
+            .terminator(Terminator::Any(b'\n'))
+            .has_headers(false)
+            .from_path(filename)?;
+        for result in rdr.deserialize() {
+            let record: NBSSCollums = result?;
+            vec.push(record);
+        }
+        Ok(vec)
+    }
+}
+
+///
+pub mod output_data {
+    use csv::{Terminator, WriterBuilder};
+    use serde::Serialize;
+    use std::error::Error;
+
+    /// Struct defining a set of collumn variables and types for csv parsing with specific input structure.
+    #[derive(Serialize)]
+    #[serde(rename_all = "PascalCase")]
+    pub struct NBSSCollums {
+        pub name: String,
+        pub mass: f64,
+        pub radius: f64,
+        pub refernce_body: String,
+        pub e: f64,
+        pub semi_parameter: f64,
+        pub position_x: f64,
+        pub position_y: f64,
+        pub position_z: f64,
+        pub velocity_x: f64,
+        pub velocity_y: f64,
+        pub velocity_z: f64,
+    }
+
+    ///
+    pub fn nbss_write_csv(
+        output_filename: &str,
+        vec: std::vec::Vec<NBSSCollums>,
+    ) -> Result<(), Box<dyn Error>> {
+        let mut writer = WriterBuilder::new()
+            .delimiter(b',')
+            .terminator(Terminator::Any(b'\n'))
+            .has_headers(false)
+            .from_path(output_filename)
+            .unwrap();
+
+        for n in vec {
+            writer.serialize(n)?;
+        }
+
+        Ok(())
+    }
+}
+
+///
+pub mod nbss {
+    ///
+    pub fn position_and_velocity_twobody(input_filename: &str, output_filename: &str) {
+        let mut file = vec![];
+        match super::input_data::nbss_parse_csv_deserialize(input_filename) {
+            Ok(vec) => file = vec,
+            Err(ex) => {
+                println!("ERROR -> {}", ex);
+            }
+        };
+
+        let mut vec = vec![];
+
+        for n in file {
+            let pos = super::position::companion_relative_position(
+                n.a,
+                n.e,
+                n.period,
+                n.time_since_periapsis,
+                n.lotn,
+                n.aop,
+                n.i,
+            )
+            .to_array();
+            let vel = super::velocity::companion_relative_velocity(
+                n.a,
+                n.e,
+                n.period,
+                n.time_since_periapsis,
+                n.lotn,
+                n.aop,
+                n.i,
+            )
+            .to_array();
+            let semi_parameter = super::common::semi_parameter(n.a, n.e);
+
+            let row = super::output_data::NBSSCollums {
+                name: n.name,
+                mass: n.mass,
+                radius: n.radius,
+                refernce_body: n.refernce_body,
+                e: n.e,
+                semi_parameter,
+                position_x: pos[0],
+                position_y: pos[1],
+                position_z: pos[2],
+                velocity_x: vel[0],
+                velocity_y: vel[1],
+                velocity_z: vel[2],
+            };
+
+            vec.push(row);
+        }
+
+        match super::output_data::nbss_write_csv(output_filename, vec) {
+            Ok(_) => (),
+            Err(ex) => {
+                println!("ERROR -> {}", ex);
+            }
+        };
+    }
+
+    //WIP
+    /*
+    pub fn position_and_velocity_relative_twobody(input_filename: &str, output_filename: &str) {
+
+    }
+
+    pub fn position_and_velocity_relative(input_filename: &str, output_filename: &str) {
+
+    }
+    */
 }
 
 // WIP
