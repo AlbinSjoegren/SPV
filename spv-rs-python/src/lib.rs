@@ -808,7 +808,116 @@ pub mod output_data {
 }
 
 ///
-pub mod nbss {    
+pub mod nbss {
+    use pyo3::prelude::*;
+    use pyo3::types::PyUnicode;
+
+    #[pyclass]
+    pub struct NBSSCollums {
+        pub name: String,
+        pub mass: f64,
+        pub radius: f64,
+        pub refernce_body: String,
+        pub e: f64,
+        pub semi_parameter: f64,
+        pub position_x: f64,
+        pub position_y: f64,
+        pub position_z: f64,
+        pub velocity_x: f64,
+        pub velocity_y: f64,
+        pub velocity_z: f64,
+    }
+    
+    #[pymodule]
+    fn wrapper(_py: Python, m: &PyModule) -> PyResult<()> {
+        #[pyfn(m)]
+        pub fn position_and_velocity_twobody(input_filename: &PyUnicode) -> PyResult<std::vec::Vec<NBSSCollums>>{
+            let mut file = vec![];
+            let mut filename = "";
+            match input_filename.to_str() {
+                Ok(input_filename) => filename = input_filename,
+                Err(ex) => {
+                    println!("ERROR -> {}", ex);
+                }
+            }
+            match super::input_data::nbss_parse_csv_deserialize(filename) {
+                Ok(vec) => file = vec,
+                Err(ex) => {
+                    println!("ERROR -> {}", ex);
+                }
+            };
+    
+            let mut vec = vec![];
+    
+            for n in file {
+                if n.a == 0. && n.e == 0.{
+                    let row = NBSSCollums {
+                        name: n.name,
+                        mass: n.mass,
+                        radius: n.radius,
+                        refernce_body: n.refernce_body,
+                        e: 0.,
+                        semi_parameter: 0.,
+                        position_x: 0.,
+                        position_y: 0.,
+                        position_z: 0.,
+                        velocity_x: 0.,
+                        velocity_y: 0.,
+                        velocity_z: 0.,
+                    };
+        
+                    vec.push(row);
+                }
+                else {
+                    let pos = super::position::companion_relative_position(
+                        n.a,
+                        n.e,
+                        n.period,
+                        n.time_since_periapsis,
+                        n.lotn,
+                        n.aop,
+                        n.i,
+                    )
+                    .to_array();
+                    let vel = super::velocity::companion_relative_velocity(
+                        n.a,
+                        n.e,
+                        n.period,
+                        n.time_since_periapsis,
+                        n.lotn,
+                        n.aop,
+                        n.i,
+                    )
+                    .to_array();
+                    let semi_parameter = super::common::semi_parameter(n.a, n.e);
+        
+                    let row = NBSSCollums {
+                        name: n.name,
+                        mass: n.mass,
+                        radius: n.radius,
+                        refernce_body: n.refernce_body,
+                        e: n.e,
+                        semi_parameter,
+                        position_x: pos[0],
+                        position_y: pos[1],
+                        position_z: pos[2],
+                        velocity_x: vel[0],
+                        velocity_y: vel[1],
+                        velocity_z: vel[2],
+                    };
+        
+                    vec.push(row);
+                }
+                
+            }
+    
+            Ok(vec)
+        }
+
+
+        Ok(())
+    }
+    
     ///
     pub fn position_and_velocity_twobody_serialized(input_filename: &str, output_filename: &str) {
         let mut file = vec![];

@@ -8,7 +8,7 @@ description = "Calculates a stars position and velocity in the cartesian coordin
 
 
 [dependencies]
-spv-rs = { version = "^0.7.0", path = "../spv-rs" }
+spv-rs = { version = "0.7.0", path = "../spv-rs" }
 glam = "0.20.2"
 vec3 = "0.2.1"
 egui = "0.16.1" 
