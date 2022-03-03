@@ -627,6 +627,16 @@ pub mod common {
     pub fn au_to_m(a: f64) -> f64 {
         a * 1000. * 149597870.7
     }
+
+    ///
+    pub fn apparent_mag_to_absolute_mag(parallax: f64, apparent_magnitude: f64) -> f64 {
+        apparent_magnitude + 5. * (parallax.log10() + 1.)
+    }
+
+    /// 
+    pub fn temperature(b_v_index: f64) -> f64 {
+        4600. * ((1. / ((0.92 * b_v_index) + 1.7)) + (1. / ((0.92 * b_v_index) + 0.62)))
+    }
 }
 
 /// Transform fucntions used by `spv-rs` but exposed her if you want to use them yourself.
@@ -670,51 +680,11 @@ pub mod coordinate_transforms {
 /// To get a csv if you got some other format from something like [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR)
 /// I would recomend a tool like [Topcat](http://www.star.bris.ac.uk/~mbt/topcat/).
 pub mod input_data {
-    use csv::{ReaderBuilder, StringRecord, Terminator};
-    use serde::Deserialize;
+    use csv::{ReaderBuilder, Terminator};
     use std::error::Error;
 
-    /// General usecase parsing function for csv files, no specific structure required.
-    pub fn parse_csv(filename: &str) -> Result<std::vec::Vec<StringRecord>, Box<dyn Error>> {
-        let mut vec = vec![];
-        let mut rdr = ReaderBuilder::new()
-            .delimiter(b',')
-            .terminator(Terminator::Any(b'\n'))
-            .has_headers(false)
-            .from_path(filename)?;
-        for result in rdr.records().flatten() {
-            let record = result;
-            vec.push(record);
-        }
-        Ok(vec)
-    }
-
-    /// Struct defining a set of collumn variables and types for csv parsing with specific input structure.
-    #[derive(Debug, Deserialize)]
-    #[serde(rename_all = "PascalCase")]
-    pub struct Collums {
-        /// Right ascension in epoch J2000.
-        pub ra_j2000: f32,
-        /// Declination in epoch J2000.
-        pub dec_j2000: f32,
-        /// Hipparcos catalogue number for the body.
-        pub hip: u32,
-        /// Common name for the body.
-        pub name: String,
-        /// Right ascension part of the proper motion in epoch J2000.
-        pub pm_ra_j2000: f32,
-        /// Declination part of the proper motion in epoch J2000.
-        pub pm_dec_j2000: f32,
-        /// Parallax in epoch J2000
-        pub plx_j2000: f32,
-        /// Radial velocity in epoch J2000
-        pub rv_j2000: f32,
-        /// Visual magnitude in epoch J2000
-        pub vmag_j2000: f32,
-    }
-
-    /// csv parsing with deserializsation using specific collum layout found in [Collums]
-    pub fn parse_csv_deserialize(filename: &str) -> Result<std::vec::Vec<Collums>, Box<dyn Error>> {
+    /// General usecase parsing function for csv files.
+    pub fn parse_csv<T: for<'de> serde::Deserialize<'de>>(filename: &str) -> Result<std::vec::Vec<T>, Box<dyn Error>> {
         let mut vec = vec![];
         let mut rdr = ReaderBuilder::new()
             .delimiter(b',')
@@ -722,41 +692,7 @@ pub mod input_data {
             .has_headers(false)
             .from_path(filename)?;
         for result in rdr.deserialize() {
-            let record: Collums = result?;
-            vec.push(record);
-        }
-        Ok(vec)
-    }
-
-    /// Struct defining a set of collumn variables and types for csv parsing with specific input structure.
-    #[derive(Debug, Deserialize)]
-    #[serde(rename_all = "PascalCase")]
-    pub struct NBSSCollums {
-        pub name: String,
-        pub mass: f64,
-        pub radius: f64,
-        pub refernce_body: String,
-        pub a: f64,
-        pub e: f64,
-        pub period: f64,
-        pub time_since_periapsis: f64,
-        pub lotn: f64,
-        pub aop: f64,
-        pub i: f64,
-    }
-
-    /// csv parsing with deserializsation using specific collum layout found in [NBSSCollums]
-    pub fn nbss_parse_csv_deserialize(
-        filename: &str,
-    ) -> Result<std::vec::Vec<NBSSCollums>, Box<dyn Error>> {
-        let mut vec = vec![];
-        let mut rdr = ReaderBuilder::new()
-            .delimiter(b',')
-            .terminator(Terminator::Any(b'\n'))
-            .has_headers(false)
-            .from_path(filename)?;
-        for result in rdr.deserialize() {
-            let record: NBSSCollums = result?;
+            let record: T = result?;
             vec.push(record);
         }
         Ok(vec)
@@ -766,31 +702,12 @@ pub mod input_data {
 ///
 pub mod output_data {
     use csv::{Terminator, WriterBuilder};
-    use serde::Serialize;
     use std::error::Error;
 
-    /// Struct defining a set of collumn variables and types for csv parsing with specific input structure.
-    #[derive(Serialize)]
-    #[serde(rename_all = "PascalCase")]
-    pub struct NBSSCollums {
-        pub name: String,
-        pub mass: f64,
-        pub radius: f64,
-        pub refernce_body: String,
-        pub e: f64,
-        pub semi_parameter: f64,
-        pub position_x: f64,
-        pub position_y: f64,
-        pub position_z: f64,
-        pub velocity_x: f64,
-        pub velocity_y: f64,
-        pub velocity_z: f64,
-    }
-
-    ///
-    pub fn nbss_write_csv(
+    /// General usecase writing function for csv files.
+    pub fn write_csv<T: serde::Serialize>(
         output_filename: &str,
-        vec: std::vec::Vec<NBSSCollums>,
+        vec: std::vec::Vec<T>,
     ) -> Result<(), Box<dyn Error>> {
         let mut writer = WriterBuilder::new()
             .delimiter(b',')
@@ -808,11 +725,49 @@ pub mod output_data {
 }
 
 ///
-pub mod nbss {    
+pub mod nbss {   
+    use serde::Deserialize;
+    use serde::Serialize; 
+
+    /// 
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "PascalCase")]
+    pub struct NBSSInputCollums {
+        pub name: String,
+        pub mass: f64,
+        pub radius: f64,
+        pub reference_body: String,
+        pub a: f64,
+        pub e: f64,
+        pub period: f64,
+        pub time_since_periapsis: f64,
+        pub lotn: f64,
+        pub aop: f64,
+        pub i: f64,
+    }
+
+    /// 
+    #[derive(Serialize)]
+    #[serde(rename_all = "PascalCase")]
+    pub struct NBSSOutputCollums {
+        pub name: String,
+        pub mass: f64,
+        pub radius: f64,
+        pub reference_body: String,
+        pub e: f64,
+        pub semi_parameter: f64,
+        pub position_x: f64,
+        pub position_y: f64,
+        pub position_z: f64,
+        pub velocity_x: f64,
+        pub velocity_y: f64,
+        pub velocity_z: f64,
+    }
+
     ///
     pub fn position_and_velocity_twobody_serialized(input_filename: &str, output_filename: &str) {
-        let mut file = vec![];
-        match super::input_data::nbss_parse_csv_deserialize(input_filename) {
+        let mut file:std::vec::Vec<NBSSInputCollums> = vec![];
+        match super::input_data::parse_csv(input_filename) {
             Ok(vec) => file = vec,
             Err(ex) => {
                 println!("ERROR -> {}", ex);
@@ -823,11 +778,11 @@ pub mod nbss {
 
         for n in file {
             if n.a == 0. && n.e == 0.{
-                let row = super::output_data::NBSSCollums {
+                let row = NBSSOutputCollums {
                     name: n.name,
                     mass: n.mass,
                     radius: n.radius,
-                    refernce_body: n.refernce_body,
+                    reference_body: n.reference_body,
                     e: 0.,
                     semi_parameter: 0.,
                     position_x: 0.,
@@ -863,11 +818,11 @@ pub mod nbss {
                 .to_array();
                 let semi_parameter = super::common::semi_parameter(n.a, n.e);
     
-                let row = super::output_data::NBSSCollums {
+                let row = NBSSOutputCollums {
                     name: n.name,
                     mass: n.mass,
                     radius: n.radius,
-                    refernce_body: n.refernce_body,
+                    reference_body: n.reference_body,
                     e: n.e,
                     semi_parameter,
                     position_x: pos[0],
@@ -882,7 +837,7 @@ pub mod nbss {
             }
         }
 
-        match super::output_data::nbss_write_csv(output_filename, vec) {
+        match super::output_data::write_csv(output_filename, vec) {
             Ok(_) => (),
             Err(ex) => {
                 println!("ERROR -> {}", ex);
