@@ -316,7 +316,7 @@ pub mod velocity {
     /// due to the fact that everything is on a plane in 2D.
     pub fn companion_velocity(a: f64, e: f64, period: f64, t_p: f64) -> DVec2 {
         //Prep Values
-        let mu = standard_gravitational_parameter(a, e);
+        let mu = standard_gravitational_parameter(a, period);
         let p = semi_parameter(a, e);
         let v = true_anomaly(e, period, t_p);
 
@@ -341,7 +341,7 @@ pub mod velocity {
         i: f64,
     ) -> DVec3 {
         //Prep Values
-        let mu = standard_gravitational_parameter(a, e);
+        let mu = standard_gravitational_parameter(a, period);
         let p = semi_parameter(a, e);
         let v = true_anomaly(e, period, t_p);
 
@@ -373,7 +373,7 @@ pub mod velocity {
 
     /// Just the companion velocity but as a value and not coordinates.
     pub fn companion_velocity_value(a: f64, e: f64, period: f64, t_p: f64) -> f64 {
-        let mu = standard_gravitational_parameter(a, e);
+        let mu = standard_gravitational_parameter(a, period);
         let epsilon = specific_mechanical_energy(a, e);
         let r = radius(a, e, period, t_p);
 
@@ -531,9 +531,9 @@ pub mod common {
     }
 
     /// Calculates the specific angular momentum value
-    pub fn specific_angular_momentum_value(a: f64, e: f64) -> f64 {
+    pub fn specific_angular_momentum_value(a: f64, e: f64, period: f64) -> f64 {
         let p = semi_parameter(a, e);
-        let mu = standard_gravitational_parameter(a, e);
+        let mu = standard_gravitational_parameter(a, period);
 
         (mu * p).sqrt()
     }
@@ -555,25 +555,25 @@ pub mod common {
     }
 
     /// Calculates the stadard gravitational parameter
-    pub fn standard_gravitational_parameter(a: f64, e: f64) -> f64 {
+    pub fn standard_gravitational_parameter(a: f64, period: f64) -> f64 {
+        let period_si = period * 31557600.;
         let a_si = au_to_m(a);
-        let p_si = semi_parameter(a, e);
+        
 
-        ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (p_si.powf(2.))
+        ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (period_si.powf(2.))
     }
 
     /// Specific mechanical energy (used by other equation but exposed here if you need it)
-    pub fn specific_mechanical_energy(a: f64, e: f64) -> f64 {
+    pub fn specific_mechanical_energy(a: f64, period: f64) -> f64 {
         let a_si = au_to_m(a);
-        let mu = standard_gravitational_parameter(a, e);
+        let mu = standard_gravitational_parameter(a, period);
 
         0. - (mu / (2. * a_si))
     }
 
     /// If you dind't have the period already
-    pub fn period(a: f64, e: f64) -> f64 {
+    pub fn period(a: f64, mu: f64) -> f64 {
         let a_si = au_to_m(a);
-        let mu = standard_gravitational_parameter(a, e);
 
         2. * std::f64::consts::PI * (((a_si.powf(3.)) / mu).sqrt())
     }
@@ -587,9 +587,9 @@ pub mod common {
     }
 
     /// Mean motion or n
-    pub fn mean_motion(a: f64, e: f64) -> f64 {
+    pub fn mean_motion(a: f64, period: f64) -> f64 {
         let a_si = au_to_m(a);
-        let mu = standard_gravitational_parameter(a, e);
+        let mu = standard_gravitational_parameter(a, period);
 
         (mu / (a_si.powf(3.))).sqrt()
     }
