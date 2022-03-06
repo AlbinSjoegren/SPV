@@ -684,12 +684,12 @@ pub mod input_data {
     use std::error::Error;
 
     /// General usecase parsing function for csv files.
-    pub fn parse_csv<T: for<'de> serde::Deserialize<'de>>(filename: &str) -> Result<std::vec::Vec<T>, Box<dyn Error>> {
+    pub fn parse_csv<T: for<'de> serde::Deserialize<'de>>(filename: &str, has_headers: bool, cols_split: u8, row_split: u8) -> Result<std::vec::Vec<T>, Box<dyn Error>> {
         let mut vec = vec![];
         let mut rdr = ReaderBuilder::new()
-            .delimiter(b',')
-            .terminator(Terminator::Any(b'\n'))
-            .has_headers(false)
+            .delimiter(cols_split)
+            .terminator(Terminator::Any(row_split))
+            .has_headers(has_headers)
             .from_path(filename)?;
         for result in rdr.deserialize() {
             let record: T = result?;
@@ -706,15 +706,14 @@ pub mod output_data {
 
     /// General usecase writing function for csv files.
     pub fn write_csv<T: serde::Serialize>(
-        output_filename: &str,
+        output_filename: &str, has_headers: bool, cols_split: u8, row_split: u8,
         vec: std::vec::Vec<T>,
     ) -> Result<(), Box<dyn Error>> {
         let mut writer = WriterBuilder::new()
-            .delimiter(b',')
-            .terminator(Terminator::Any(b'\n'))
-            .has_headers(false)
-            .from_path(output_filename)
-            .unwrap();
+            .delimiter(cols_split)
+            .terminator(Terminator::Any(row_split))
+            .has_headers(has_headers)
+            .from_path(output_filename)?;
 
         for n in vec {
             writer.serialize(n)?;
@@ -767,7 +766,7 @@ pub mod nbss {
     ///
     pub fn position_and_velocity_twobody_serialized(input_filename: &str, output_filename: &str) {
         let mut file:std::vec::Vec<NBSSInputCollums> = vec![];
-        match super::input_data::parse_csv(input_filename) {
+        match super::input_data::parse_csv(input_filename, false, b',', b'\n') {
             Ok(vec) => file = vec,
             Err(ex) => {
                 println!("ERROR -> {}", ex);
@@ -837,7 +836,7 @@ pub mod nbss {
             }
         }
 
-        match super::output_data::write_csv(output_filename, vec) {
+        match super::output_data::write_csv(output_filename, false, b',', b'\n', vec) {
             Ok(_) => (),
             Err(ex) => {
                 println!("ERROR -> {}", ex);
