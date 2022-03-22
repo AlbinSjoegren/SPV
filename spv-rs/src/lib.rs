@@ -38,73 +38,7 @@
 //! }
 //! ```
 //! The same general principles apply to most functions.
-//!
-//! Now for a more complex example, let's say that we wanted to parse a csv with the collums
-//! `parallax`, `right_ascension`, `declination`, `proper_motion_ra`, `proper_motion_dec` and `radial_velocity`.
-//! Aka not the exact layout found in [`input_data::parse_csv_deserialize`].
-//! We want the position and velocity of the bodies in the list in the cartesian coordinate system printed to the terminal for now.
-//! ```rust
-//! use spv_rs::position::position;
-//! use spv_rs::velocity::velocity;
-//! use csv::StringRecord;
-//! use serde::Deserialize;
-//! use std::error::Error;
-//!  
-//! #[derive(Debug, Deserialize)]
-//! #[serde(rename_all = "PascalCase")]
-//! struct Collums {
-//!     parallax: f64,
-//!     right_ascension: f64,
-//!     declination: f64,
-//!     proper_motion_ra: f64,
-//!     proper_motion_dec: f64,
-//!     radial_velocity: f64,
-//! }
-//!
-//! fn main() {
-//!     let mut data = vec![];
-//!
-//!     match spv_rs::input_data::parse_csv("some_file.csv") {
-//!         Ok(vec) => data = vec,
-//!         Err(ex) => {
-//!             println!("ERROR -> {}", ex);
-//!         }
-//!     }
-//!  
-//!     let mut deserialized_data = vec![];
-//!
-//!     match deserialize(data) {
-//!         Ok(vec) => deserialized_data = vec,
-//!         Err(ex) => {
-//!             println!("ERROR -> {}", ex);
-//!         }
-//!     }
-//!  
-//!     for i in deserialized_data {
-//!         let position = position(i.parallax, i.right_ascension, i.declination).to_array();
-//!  
-//!         let velocity = velocity(i.parallax, i.right_ascension, i.declination,
-//!             i.proper_motion_ra, i.proper_motion_dec, i.radial_velocity).to_array();
-//!  
-//!         println!("This bodies position is: ({}, {}, {}) and it's velocity is ({}, {}, {})",
-//!             position[0], position[1], position[2], velocity[0], velocity[1], velocity[2])
-//!     }
-//! }
-//!
-//! fn deserialize(
-//!     data: std::vec::Vec<StringRecord>
-//! ) -> Result<std::vec::Vec<Collums>, Box<dyn Error>> {
-//!     let mut vec = vec![];
-//!
-//!     for result in data {
-//!         let record: Collums = result.deserialize(None)?;
-//!         vec.push(record);
-//!     }
-//!  
-//!     Ok(vec)
-//! }
-//! ```
-//!
+//! 
 //! ### Extra
 //!
 //! Feel free to propose additions/changes, file issues and or help with the project over on [GitHub](https://github.com/AlbinSjoegren/SPV)!
@@ -699,7 +633,7 @@ pub mod input_data {
     }
 }
 
-///
+/// Basic csv writing utility for saving large datasets to file.
 pub mod output_data {
     use csv::{Terminator, WriterBuilder};
     use std::error::Error;
@@ -723,12 +657,12 @@ pub mod output_data {
     }
 }
 
-///
+/// Specific usecase functions for NBSS 
 pub mod nbss {   
     use serde::Deserialize;
     use serde::Serialize; 
 
-    /// 
+    /// NBSS Input struct
     #[derive(Debug, Deserialize)]
     #[serde(rename_all = "PascalCase")]
     pub struct NBSSInputCollums {
@@ -745,7 +679,7 @@ pub mod nbss {
         pub i: f64,
     }
 
-    /// 
+    /// NBSS Output struct
     #[derive(Serialize)]
     #[serde(rename_all = "PascalCase")]
     pub struct NBSSOutputCollums {
@@ -763,7 +697,7 @@ pub mod nbss {
         pub velocity_z: f64,
     }
 
-    ///
+    /// NBSS Calc struct (can be used as an example of what you can do with SPV)
     pub fn position_and_velocity_twobody_serialized(input_filename: &str, output_filename: &str) {
         let mut file:std::vec::Vec<NBSSInputCollums> = vec![];
         match super::input_data::parse_csv(input_filename, false, b',', b'\n') {
