@@ -38,7 +38,7 @@
 //! }
 //! ```
 //! The same general principles apply to most functions.
-//! 
+//!
 //! ### Extra
 //!
 //! Feel free to propose additions/changes, file issues and or help with the project over on [GitHub](https://github.com/AlbinSjoegren/SPV)!
@@ -492,7 +492,6 @@ pub mod common {
     pub fn standard_gravitational_parameter(a: f64, period: f64) -> f64 {
         let period_si = period * 31557600.;
         let a_si = au_to_m(a);
-        
 
         ((a_si.powf(3.)) * 4. * (std::f64::consts::PI.powf(2.))) / (period_si.powf(2.))
     }
@@ -567,7 +566,7 @@ pub mod common {
         apparent_magnitude + 5. * (parallax.log10() + 1.)
     }
 
-    /// 
+    ///
     pub fn temperature(b_v_index: f64) -> f64 {
         4600. * ((1. / ((0.92 * b_v_index) + 1.7)) + (1. / ((0.92 * b_v_index) + 0.62)))
     }
@@ -618,7 +617,12 @@ pub mod input_data {
     use std::error::Error;
 
     /// General usecase parsing function for csv files.
-    pub fn parse_csv<T: for<'de> serde::Deserialize<'de>>(filename: &str, has_headers: bool, cols_split: u8, row_split: u8) -> Result<std::vec::Vec<T>, Box<dyn Error>> {
+    pub fn parse_csv<T: for<'de> serde::Deserialize<'de>>(
+        filename: &str,
+        has_headers: bool,
+        cols_split: u8,
+        row_split: u8,
+    ) -> Result<std::vec::Vec<T>, Box<dyn Error>> {
         let mut vec = vec![];
         let mut rdr = ReaderBuilder::new()
             .delimiter(cols_split)
@@ -640,7 +644,10 @@ pub mod output_data {
 
     /// General usecase writing function for csv files.
     pub fn write_csv<T: serde::Serialize>(
-        output_filename: &str, has_headers: bool, cols_split: u8, row_split: u8,
+        output_filename: &str,
+        has_headers: bool,
+        cols_split: u8,
+        row_split: u8,
         vec: std::vec::Vec<T>,
     ) -> Result<(), Box<dyn Error>> {
         let mut writer = WriterBuilder::new()
@@ -657,10 +664,10 @@ pub mod output_data {
     }
 }
 
-/// Specific usecase functions for NBSS 
-pub mod nbss {   
+/// Specific usecase functions for NBSS
+pub mod nbss {
     use serde::Deserialize;
-    use serde::Serialize; 
+    use serde::Serialize;
 
     /// NBSS Input struct
     #[derive(Debug, Deserialize)]
@@ -699,7 +706,7 @@ pub mod nbss {
 
     /// NBSS Calc struct (can be used as an example of what you can do with SPV)
     pub fn position_and_velocity_twobody_serialized(input_filename: &str, output_filename: &str) {
-        let mut file:std::vec::Vec<NBSSInputCollums> = vec![];
+        let mut file: std::vec::Vec<NBSSInputCollums> = vec![];
         match super::input_data::parse_csv(input_filename, false, b',', b'\n') {
             Ok(vec) => file = vec,
             Err(ex) => {
@@ -710,7 +717,7 @@ pub mod nbss {
         let mut vec = vec![];
 
         for n in file {
-            if n.a == 0. && n.e == 0.{
+            if n.a == 0. && n.e == 0. {
                 let row = NBSSOutputCollums {
                     name: n.name,
                     mass: n.mass,
@@ -725,10 +732,9 @@ pub mod nbss {
                     velocity_y: 0.,
                     velocity_z: 0.,
                 };
-    
+
                 vec.push(row);
-            }
-            else {
+            } else {
                 let pos = super::position::companion_relative_position(
                     n.a,
                     n.e,
@@ -750,7 +756,7 @@ pub mod nbss {
                 )
                 .to_array();
                 let semi_parameter = super::common::semi_parameter(n.a, n.e);
-    
+
                 let row = NBSSOutputCollums {
                     name: n.name,
                     mass: n.mass,
@@ -765,7 +771,7 @@ pub mod nbss {
                     velocity_y: vel[1],
                     velocity_z: vel[2],
                 };
-    
+
                 vec.push(row);
             }
         }
@@ -777,7 +783,6 @@ pub mod nbss {
             }
         };
     }
-
 
     //WIP
     /*
